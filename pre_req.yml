@@ -1,0 +1,10 @@
+---
+- hosts: windows2019
+  tasks:
+    - name: Instalar dependencias para Alfresco
+      win_chocolatey:
+        name:
+        - postgresql11
+        - tomcat
+        state: present
+
