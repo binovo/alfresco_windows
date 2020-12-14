@@ -5,6 +5,10 @@
       win_chocolatey:
         name:
         - postgresql11
+        - ojdkbuild11
         - tomcat
+        - libreoffice-still
+        - activemq
+        - nginx
         state: present
 
