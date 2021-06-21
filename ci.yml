@@ -1,0 +1,11 @@
+name: Install on CI
+
+on: 
+  push
+jobs:
+  install:
+     runs-on: windows-latest
+     steps:
+     - uses: actions/checkout@v1
+     - run: ls
+
