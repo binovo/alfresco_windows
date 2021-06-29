@@ -1,22 +1,6 @@
 ---
 - hosts: windows2019
   tasks:
-    - name: Creando directorio para instaladores
-      ansible.windows.win_file:
-        path: c:\Alfresco\installers
-        state: directory
-    - name: Dir para Alfresco
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\alf_data
-        state: directory
-    - name: Dir para Catalina
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat
-        state: directory
-    - name: Dir para Logs
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\logs
-        state: directory
     - name: JAVA_HOME
       ansible.windows.win_environment:
         state: present
@@ -41,6 +25,62 @@
         name: CATALINA_HOME
         value: c:\Alfresco\alfresco\tomcat
         level: machine
+    - name: Creando directorio para instaladores
+      ansible.windows.win_file:
+        path: c:\Alfresco\installers
+        state: directory
+    - name: Download Tomcat intaller
+      ansible.windows.win_get_url:
+        url: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
+        dest: C:\Alfresco\installers\
+    - name: Dir para JDK
+      ansible.windows.win_file:
+        path: c:\Alfresco\JDK11
+        state: directory
+    - name: Download JDK
+      ansible.windows.win_get_url:
+        url: https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
+        dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
+    - name: Unarchive JDK
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
+        dest: c:\Alfresco\JDK11
+    - name: Manual install of Tomcat
+      ansible.builtin.debug:
+        msg: You can now login, and install tomcat manually
+    - name: Installs Libreoffice from MSI
+      win_package:
+        path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
+        state: present
+    - name: Installs Pgsql
+      win_package:
+        path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
+        arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
+        state: present
+    - name: Nginx dir
+      ansible.windows.win_file:
+        path: c:\Alfresco\nginx
+        state: directory
+    - name: Download nginx
+      ansible.windows.win_get_url:
+        url: https://nginx.org/download/nginx-1.21.0.zip
+        dest: C:\Alfresco\installers\nginx-1.21.0.zip
+    - name: Unarchive nginx
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\nginx-1.21.0.zip
+        dest: c:\Alfresco\nginx
+    - name: Dir para Alfresco
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\alf_data
+        state: directory
+    - name: Dir para Catalina
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\tomcat
+        state: directory
+    - name: Dir para Logs
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\logs
+        state: directory
     - name: Borrando aplicaciones default de tomcat
       ansible.windows.win_file:
         path: c:\Alfresco\alfresco\tomcat\webapps
@@ -92,7 +132,7 @@
     - name: Download JDBC for PostgreSQL
       ansible.windows.win_get_url:
         url: https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
-        dest: C:\Alfresco\alfresco\tomcat\lib\
+        dest: C:\Alfresco\alfresco\lib\
     - name: Download Imagemagick
       ansible.windows.win_get_url:
         url: https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip
@@ -101,14 +141,88 @@
       community.windows.win_unzip:
         src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
         dest: c:\Alfresco\ImageMagick
+    - name: Creando /addons/war
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\addons\war
+        state: directory
+    - name: Creando /addons/share
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\addons\share
+        state: directory
+    - name: Creando /addons/alfresco
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\addons\alfresco
+        state: directory
+    - name: Download Alfresco-mmt
+      ansible.windows.win_get_url:
+        url: https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar
+        dest: C:\Alfresco\alfresco\addons\alfresco-mmt.jar
+    - name: Creando \modules\platform
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\modules\platform
+        state: directory
+    - name: Creando \modules\share
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\modules\share
+        state: directory
+    - name: Creando \bin
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\bin
+        state: directory
+    - name: Download PDF Renderer
+      ansible.windows.win_get_url:
+        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer
+        dest: c:\Alfresco\alfresco\bin
+    - name: Download alfresco war
+      ansible.windows.win_get_url:
+        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war
+        dest: c:\Alfresco\alfresco\addons\war\alfresco.war
+    - name: Download alfresco and share classloader config files
+      ansible.windows.win_get_url:
+        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml
+        dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml
+    - name: Download share war
+      ansible.windows.win_get_url:
+        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war
+        dest: c:\Alfresco\alfresco\addons\war\share.war
+    - name: Download alfresco and share classloader config files
+      ansible.windows.win_get_url:
+        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml
+        dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml
+    - name: Download share services
+      ansible.windows.win_get_url:
+        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp
+        dest: c:\Alfresco\alfresco\addons\alfresco\
 
+          #   sudo curl -s -o $ALF_HOME/solr6.zip $ASS_DOWNLOAD
+          #   echogreen "Expanding Solr6 file..."
+          #   cd $ALF_HOME
+          #   sudo unzip -q solr6.zip
+          #   sudo mv alfresco-search-services solr6
+          #   sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
+          #   sudo curl -s -o $ALF_HOME/solr6/solrhome/conf/shared.properties $BASE_DOWNLOAD/search/shared.properties
+          #   sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
+
+          #     curl -s -O $GOOGLEDOCSREPO
+          #     sudo mv alfresco-googledocs-repo*.amp $ALF_HOME/addons/alfresco/
+          #     curl  -s -O $GOOGLEDOCSSHARE
+          #     sudo mv alfresco-googledocs-share* $ALF_HOME/addons/share/
+          #     (cd $ALF_HOME/addons/alfresco;sudo curl -# -O $AOS_AMP)
+          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/_vti_bin.war $AOS_VTI
+          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/ROOT.war $AOS_SERVER_ROOT
+          # 
+          #         sudo $ALF_HOME/addons/apply.sh all
+          #   sudo chmod u+x $ALF_HOME/solr6/solr.in.sh
+
+          #  if [ ! -f "$ALF_HOME/addons/apply.sh" ]; then
+          #    echo "Downloading apply.sh script..."
+          #    sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
+          #    sudo chmod u+x $ALF_HOME/addons/apply.sh
 
 
           #  sudo curl -s -o /etc/nginx/nginx.conf $BASE_DOWNLOAD/nginx/nginx.conf
           #  sudo curl -c 5 /etc/nginx/conf.d/alfresco.conf $BASE_DOWNLOAD/nginx/default
 
-
-          #sudo mv $JDBCPOSTGRES $CATALINA_HOME/lib
 
           # TODO, crear servicios
 
@@ -118,44 +232,18 @@
 #    # Enable the service
 #    sudo systemctl enable alfresco.service
 #    sudo systemctl daemon-reload
+          #   if [ ! -f "$ALF_HOME/scripts/postgresql.sh" ]; then
+          #     echo "Downloading postgresql.sh install and setup script..."
+          #     sudo curl -s -o $ALF_HOME/scripts/postgresql.sh $BASE_DOWNLOAD/scripts/postgresql.sh
+          #   fi
+          # 
+          #   if [ ! -f "$ALF_HOME/scripts/limitconvert.sh" ]; then
+          #     echo "Downloading limitconvert.sh script..."
+          #     sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
+          #   fi
 
 # Las siguientes líneas que dicen #listo#, necesitan un condicional para que no se ejecuten 2 veces.
 
-    - name: Libreoffice from MSI
-      win_package:
-        path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
-        state: present
-    - name: Dir para JDK
-      ansible.windows.win_file:
-        path: c:\Alfresco\JDK11
-        state: directory
-    - name: Download JDK
-      ansible.windows.win_get_url:
-        url: https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
-        dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
-    - name: Unarchive JDK
-      community.windows.win_unzip:
-        src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
-        dest: c:\Alfresco\JDK11
-    - name: Pgsql
-      win_package:
-        path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
-        arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
-        state: present
-  
-  
-    - name: Dir para nginx
-      ansible.windows.win_file:
-        path: c:\Alfresco\nginx
-        state: directory
-    - name: Download nginx
-      ansible.windows.win_get_url:
-        url: https://nginx.org/download/nginx-1.21.0.zip
-        dest: C:\Alfresco\installers\nginx-1.21.0.zip
-    - name: Unarchive nginx
-      community.windows.win_unzip:
-        src: C:\Alfresco\nginx-1.21.0.zip
-        dest: c:\Alfresco\installers\nginx
 
 # Se queda pegado y no hace nada. Falta forzarlo a que sea interactivo
 #fallo#
@@ -164,19 +252,4 @@
 #fallo#      path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
 #fallo#        #arguments: "/S" #/D=C:\Alfresco\Tomcat
 #fallo#      state: present
-
-
     # apache-tomcat-8.5.11.exe /S /D=D:\softwares\Tomcat
-    
-#    - name: Instalar dependencias para Alfresco - nginx
-#      win_chocolatey:
-#        name:
-#        - nginx
-#        state: present
-#        install_args: '/D=C:\Alfresco\nginx'
-#          #    - name: Instala firefox
-#          #      win_chocolatey:
-#          #        name:
-#          #        - firefox # solo para debug
-#          #        state: present
-#          #
