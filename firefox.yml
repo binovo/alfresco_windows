@@ -1,0 +1,10 @@
+---
+- hosts: windows2019
+  tasks:
+   
+    - name: Instala firefox
+      win_chocolatey:
+        name:
+        - firefox # solo para debug
+        state: present
+
