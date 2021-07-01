@@ -29,10 +29,6 @@
       ansible.windows.win_file:
         path: c:\Alfresco\installers
         state: directory
-    - name: Download Tomcat intaller
-      ansible.windows.win_get_url:
-        url: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
-        dest: C:\Alfresco\installers\
     - name: Dir para JDK
       ansible.windows.win_file:
         path: c:\Alfresco\JDK11
@@ -45,9 +41,11 @@
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
         dest: c:\Alfresco\JDK11
-    - name: Manual install of Tomcat
-      ansible.builtin.debug:
-        msg: You can now login, and install tomcat manually
+    - name: Install Tomcat
+      win_package:
+        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
+        arguments: /S /D=c:\Alfresco\alfresco\tomcat
+        state: present
     - name: Installs Libreoffice from MSI
       win_package:
         path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
