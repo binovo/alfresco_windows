@@ -55,6 +55,7 @@
         path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
         state: present
+        creates_path: c:\Alfresco\PostgreSQL11
     - name: Nginx dir
       ansible.windows.win_file:
         path: c:\Alfresco\nginx
@@ -130,7 +131,7 @@
     - name: Download JDBC for PostgreSQL
       ansible.windows.win_get_url:
         url: https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
-        dest: C:\Alfresco\alfresco\lib\
+        dest: C:\Alfresco\alfresco\tomcat\shared\lib\
     - name: Download Imagemagick
       ansible.windows.win_get_url:
         url: https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip
