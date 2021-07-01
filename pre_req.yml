@@ -29,10 +29,6 @@
       ansible.windows.win_file:
         path: c:\Alfresco\installers
         state: directory
-    - name: Download Tomcat intaller
-      ansible.windows.win_get_url:
-        url: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
-        dest: C:\Alfresco\installers\
     - name: Dir para JDK
       ansible.windows.win_file:
         path: c:\Alfresco\JDK11
@@ -45,9 +41,11 @@
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
         dest: c:\Alfresco\JDK11
-    - name: Manual install of Tomcat
-      ansible.builtin.debug:
-        msg: You can now login, and install tomcat manually
+    - name: Install Tomcat
+      win_package:
+        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
+        arguments: /S /D=c:\Alfresco\alfresco\tomcat
+        state: present
     - name: Installs Libreoffice from MSI
       win_package:
         path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
@@ -57,6 +55,7 @@
         path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
         state: present
+        creates_path: c:\Alfresco\PostgreSQL11
     - name: Nginx dir
       ansible.windows.win_file:
         path: c:\Alfresco\nginx
@@ -132,7 +131,7 @@
     - name: Download JDBC for PostgreSQL
       ansible.windows.win_get_url:
         url: https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
-        dest: C:\Alfresco\alfresco\lib\
+        dest: C:\Alfresco\alfresco\tomcat\shared\lib\
     - name: Download Imagemagick
       ansible.windows.win_get_url:
         url: https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip
@@ -177,7 +176,7 @@
       ansible.windows.win_get_url:
         url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war
         dest: c:\Alfresco\alfresco\addons\war\alfresco.war
-    - name: Download alfresco and share classloader config files
+    - name: Download alfresco classloader config files
       ansible.windows.win_get_url:
         url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml
         dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml
@@ -185,7 +184,7 @@
       ansible.windows.win_get_url:
         url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war
         dest: c:\Alfresco\alfresco\addons\war\share.war
-    - name: Download alfresco and share classloader config files
+    - name: Download share classloader config files
       ansible.windows.win_get_url:
         url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml
         dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml
