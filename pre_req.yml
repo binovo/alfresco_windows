@@ -176,7 +176,7 @@
       ansible.windows.win_get_url:
         url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war
         dest: c:\Alfresco\alfresco\addons\war\alfresco.war
-    - name: Download alfresco and share classloader config files
+    - name: Download alfresco classloader config files
       ansible.windows.win_get_url:
         url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml
         dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml
@@ -184,7 +184,7 @@
       ansible.windows.win_get_url:
         url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war
         dest: c:\Alfresco\alfresco\addons\war\share.war
-    - name: Download alfresco and share classloader config files
+    - name: Download share classloader config files
       ansible.windows.win_get_url:
         url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml
         dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml
