@@ -38,6 +38,7 @@
         - { url: 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip', dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip }
         - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip }
         - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-search-services/1.3.0.1/alfresco-search-services-1.3.0.1.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip }
     - name: Unarchive JDK
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
@@ -47,6 +48,41 @@
         path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
         arguments: /S /D=c:\Alfresco\alfresco\tomcat
         state: present
+    - name: Borrando aplicaciones default de tomcat
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\tomcat\webapps
+        state: absent
+    - name: Recreando directorio webapps
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\tomcat\webapps
+        state: directory
+    - name: Installs Libreoffice from MSI
+      win_package:
+        path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
+        state: present
+    - name: Installs Pgsql
+      win_package:
+        path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
+        arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
+        state: present
+        creates_path: c:\Alfresco\PostgreSQL11
+    - name: Unarchive nginx
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\nginx-1.21.0.zip
+        dest: c:\Alfresco\nginx
+    - name: Unarchive Imagemagick
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
+        dest: c:\Alfresco\ImageMagick
+    - name: Unarchive solr6
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
+        dest: c:\Alfresco\alfresco
+    - name: Renaming a-s-s to solr6
+      win_shell: rename-item alfresco-search-services solr6
+      args:
+        chdir: C:\Alfresco\alfresco
+        creates: C:\Alfresco\alfresco\solr6
     - name: Downloading config files
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
@@ -66,80 +102,23 @@
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\share-config-custom.xml }
         - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: C:\Alfresco\alfresco\tomcat\shared\lib\postgresql-42.2.5.jar }
-    - name: Installs Libreoffice from MSI
-      win_package:
-        path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
-        state: present
-    - name: Installs Pgsql
-      win_package:
-        path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
-        arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
-        state: present
-        creates_path: c:\Alfresco\PostgreSQL11
-    - name: Unarchive nginx
-      community.windows.win_unzip:
-        src: C:\Alfresco\installers\nginx-1.21.0.zip
-        dest: c:\Alfresco\nginx
-    - name: Borrando aplicaciones default de tomcat
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
-        state: absent
-    - name: Recreando directorio webapps
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
-        state: directory
-    - name: Unarchive Imagemagick
-      community.windows.win_unzip:
-        src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
-        dest: c:\Alfresco\ImageMagick
-
-          #   sudo curl -s -o $ALF_HOME/solr6.zip $ASS_DOWNLOAD
-          #   echogreen "Expanding Solr6 file..."
-          #   cd $ALF_HOME
-          #   sudo unzip -q solr6.zip
-          #   sudo mv alfresco-search-services solr6
-          #   sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
-          #   sudo curl -s -o $ALF_HOME/solr6/solrhome/conf/shared.properties $BASE_DOWNLOAD/search/shared.properties
-          #   sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
-
-          #     curl -s -O $GOOGLEDOCSREPO
-          #     sudo mv alfresco-googledocs-repo*.amp $ALF_HOME/addons/alfresco/
-          #     curl  -s -O $GOOGLEDOCSSHARE
-          #     sudo mv alfresco-googledocs-share* $ALF_HOME/addons/share/
-          #     (cd $ALF_HOME/addons/alfresco;sudo curl -# -O $AOS_AMP)
-          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/_vti_bin.war $AOS_VTI
-          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/ROOT.war $AOS_SERVER_ROOT
-          # 
-          #         sudo $ALF_HOME/addons/apply.sh all
-          #   sudo chmod u+x $ALF_HOME/solr6/solr.in.sh
-
-          #  if [ ! -f "$ALF_HOME/addons/apply.sh" ]; then
-          #    echo "Downloading apply.sh script..."
-          #    sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
-          #    sudo chmod u+x $ALF_HOME/addons/apply.sh
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties 
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-googledocs-repo-3.0.4.3.amp }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\share\alfresco-googledocs-share-3.0.4.3.amp }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-aos-module-1.2.2.amp } 
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: C:\Alfresco\alfresco\tomcat\webapps\_vti_bin.war }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: :\Alfresco\alfresco\tomcat\webapps\ROOT.war }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
 
 
-          #  sudo curl -s -o /etc/nginx/nginx.conf $BASE_DOWNLOAD/nginx/nginx.conf
-          #  sudo curl -c 5 /etc/nginx/conf.d/alfresco.conf $BASE_DOWNLOAD/nginx/default
+# TODO, crear servicios
+# sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
 
-
-          # TODO, crear servicios
-
-#    sudo curl -s -o $ALF_HOME/alfresco-service.sh $BASE_DOWNLOAD/scripts/alfresco-service.sh
-#    sudo chmod 755 $ALF_HOME/alfresco-service.sh
-#    sudo sed -i "s/@@LOCALESUPPORT@@/$LOCALESUPPORT/g" $ALF_HOME/alfresco-service.sh 
-#    # Enable the service
-#    sudo systemctl enable alfresco.service
-#    sudo systemctl daemon-reload
-          #   if [ ! -f "$ALF_HOME/scripts/postgresql.sh" ]; then
-          #     echo "Downloading postgresql.sh install and setup script..."
-          #     sudo curl -s -o $ALF_HOME/scripts/postgresql.sh $BASE_DOWNLOAD/scripts/postgresql.sh
-          #   fi
-          # 
-          #   if [ ! -f "$ALF_HOME/scripts/limitconvert.sh" ]; then
-          #     echo "Downloading limitconvert.sh script..."
-          #     sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
-          #   fi
-
-# Las siguientes líneas que dicen #listo#, necesitan un condicional para que no se ejecuten 2 veces.
-
+# TODO, traducir scripts
+# sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
+# sudo $ALF_HOME/addons/apply.sh all
+# sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
+# sudo curl -s -o $ALF_HOME/alfresco-service.sh $BASE_DOWNLOAD/scripts/alfresco-service.sh
+# sudo sed -i "s/@@LOCALESUPPORT@@/$LOCALESUPPORT/g" $ALF_HOME/alfresco-service.sh 
+# sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
