@@ -19,7 +19,6 @@
         - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension
         - c:\Alfresco\alfresco\tomcat\shared\lib
         - c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost
-        - c:\Alfresco\alfresco\tomcat
         - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\extension
         - c:\Alfresco\alfresco\alf_data
         - c:\Alfresco\alfresco\logs
@@ -102,12 +101,12 @@
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\share-config-custom.xml }
         - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: C:\Alfresco\alfresco\tomcat\shared\lib\postgresql-42.2.5.jar }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties 
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties } 
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-googledocs-repo-3.0.4.3.amp }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\share\alfresco-googledocs-share-3.0.4.3.amp }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-aos-module-1.2.2.amp } 
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: C:\Alfresco\alfresco\tomcat\webapps\_vti_bin.war }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: :\Alfresco\alfresco\tomcat\webapps\ROOT.war }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: C:\Alfresco\alfresco\tomcat\webapps\ROOT.war }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
 
