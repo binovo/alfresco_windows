@@ -15,6 +15,7 @@
         state: directory
       loop:
         - c:\Alfresco\installers
+        - c:\Alfresco\installers\tmp
         - c:\Alfresco\JDK11
         - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension
         - c:\Alfresco\alfresco\tomcat\shared\lib
@@ -65,6 +66,18 @@
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
         state: present
         creates_path: c:\Alfresco\PostgreSQL11
+    - name: Prepare db creation template
+      ansible.windows.win_template:
+        src: ./resources/create-db.sql.j2
+        dest: C:\Alfresco\installers\tmp\create-db.sql
+    - name: Create alfresco database
+      ansible.windows.win_shell: |
+        $env:PGPASSWORD = "postgres"
+        C:\Alfresco\PostgreSQL11\bin\psql.exe -U postgres -f C:\Alfresco\installers\tmp\create-db.sql
+    - name: Delete db creation template
+      ansible.windows.win_file:
+        path: C:\Alfresco\installers\tmp\create-db.sql
+        state: absent
     - name: Unarchive nginx
       community.windows.win_unzip:
         src: C:\Alfresco\installers\nginx-1.21.0.zip
