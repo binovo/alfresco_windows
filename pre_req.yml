@@ -1,42 +1,43 @@
 ---
 - hosts: windows2019
   tasks:
-    - name: JAVA_HOME
+    - name: Defining variables
       ansible.windows.win_environment:
-        state: present
-        name: JAVA_HOME
-        value: c:\Alfresco\JDK11\jdk-11.0.11+9\
+        variables:
+          JAVA_HOME: c:\Alfresco\JDK11\jdk-11.0.11+9\
+          ALF_HOME: c:\Alfresco\alfresco
+          ALF_DATA_HOME: c:\Alfresco\alfresco\alf_data
+          CATALINA_HOME: c:\Alfresco\alfresco\tomcat
         level: machine
-    - name: ALF_HOME
-      ansible.windows.win_environment:
-        state: present
-        name: ALF_HOME
-        value: c:\Alfresco\alfresco
-        level: machine
-    - name: ALF_DATA_HOME
-      ansible.windows.win_environment:
-        state: present
-        name: ALF_DATA_HOME
-        value: c:\Alfresco\alfresco\alf_data
-        level: machine
-    - name: CATALINA_HOME
-      ansible.windows.win_environment:
-        state: present
-        name: CATALINA_HOME
-        value: c:\Alfresco\alfresco\tomcat
-        level: machine
-    - name: Creando directorio para instaladores
+    - name: Creando directorios
       ansible.windows.win_file:
-        path: c:\Alfresco\installers
+        path: "{{ item }}"
         state: directory
-    - name: Dir para JDK
-      ansible.windows.win_file:
-        path: c:\Alfresco\JDK11
-        state: directory
-    - name: Download JDK
+      loop:
+        - c:\Alfresco\installers
+        - c:\Alfresco\JDK11
+        - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension
+        - c:\Alfresco\alfresco\tomcat\shared\lib
+        - c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost
+        - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\extension
+        - c:\Alfresco\alfresco\alf_data
+        - c:\Alfresco\alfresco\logs
+        - c:\Alfresco\alfresco\modules\platform
+        - c:\Alfresco\alfresco\modules\share
+        - c:\Alfresco\alfresco\bin
+        - c:\Alfresco\alfresco\addons\war
+        - c:\Alfresco\alfresco\addons\share
+        - c:\Alfresco\alfresco\addons\alfresco
+        - c:\Alfresco\nginx
+    - name: Downloading installers
       ansible.windows.win_get_url:
-        url: https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
-        dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }} "
+      loop:
+        - { url: 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip', dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip }
+        - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip }
+        - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-search-services/1.3.0.1/alfresco-search-services-1.3.0.1.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip }
     - name: Unarchive JDK
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
@@ -46,6 +47,14 @@
         path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
         arguments: /S /D=c:\Alfresco\alfresco\tomcat
         state: present
+    - name: Borrando aplicaciones default de tomcat
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\tomcat\webapps
+        state: absent
+    - name: Recreando directorio webapps
+      ansible.windows.win_file:
+        path: c:\Alfresco\alfresco\tomcat\webapps
+        state: directory
     - name: Installs Libreoffice from MSI
       win_package:
         path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
@@ -56,199 +65,59 @@
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
         state: present
         creates_path: c:\Alfresco\PostgreSQL11
-    - name: Nginx dir
-      ansible.windows.win_file:
-        path: c:\Alfresco\nginx
-        state: directory
-    - name: Download nginx
-      ansible.windows.win_get_url:
-        url: https://nginx.org/download/nginx-1.21.0.zip
-        dest: C:\Alfresco\installers\nginx-1.21.0.zip
     - name: Unarchive nginx
       community.windows.win_unzip:
         src: C:\Alfresco\installers\nginx-1.21.0.zip
         dest: c:\Alfresco\nginx
-    - name: Dir para Alfresco
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\alf_data
-        state: directory
-    - name: Dir para Catalina
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat
-        state: directory
-    - name: Dir para Logs
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\logs
-        state: directory
-    - name: Borrando aplicaciones default de tomcat
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
-        state: absent
-    - name: Recreando directorio webapps
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
-        state: directory
-    - name: Creando directorio para conf de tomcat
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost
-        state: directory
-    - name: Download Tomcat conf server.xml
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/server.xml
-        dest: C:\Alfresco\alfresco\tomcat\conf\server.xml
-    - name: Download Tomcat conf catalina.properties
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/catalina.properties
-        dest: C:\Alfresco\alfresco\tomcat\conf\catalina.properties
-    - name: Download Tomcat conf tomcat-users.xml
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml
-        dest: C:\Alfresco\alfresco\tomcat\conf\tomcat-users.xml
-    - name: Download Tomcat conf context.xml
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml
-        dest: C:\Alfresco\alfresco\tomcat\conf\context.xml
-    - name: Creando /shared extension
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\extension
-        state: directory
-    - name: Creando /shared web-extension
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension
-        state: directory
-    - name: Creando /shared lib
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\shared\lib
-        state: directory
-    - name: Download Global Properties
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties
-        dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties
-    - name: Download Share Config
-      ansible.windows.win_get_url:
-        url: https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml
-        dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\
-    - name: Download JDBC for PostgreSQL
-      ansible.windows.win_get_url:
-        url: https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
-        dest: C:\Alfresco\alfresco\tomcat\shared\lib\
-    - name: Download Imagemagick
-      ansible.windows.win_get_url:
-        url: https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip
-        dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
     - name: Unarchive Imagemagick
       community.windows.win_unzip:
         src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
         dest: c:\Alfresco\ImageMagick
-    - name: Creando /addons/war
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\addons\war
-        state: directory
-    - name: Creando /addons/share
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\addons\share
-        state: directory
-    - name: Creando /addons/alfresco
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\addons\alfresco
-        state: directory
-    - name: Download Alfresco-mmt
+    - name: Unarchive solr6
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
+        dest: c:\Alfresco\alfresco
+    - name: Renaming a-s-s to solr6
+      win_shell: rename-item alfresco-search-services solr6
+      args:
+        chdir: C:\Alfresco\alfresco
+        creates: C:\Alfresco\alfresco\solr6
+    - name: Downloading config files
       ansible.windows.win_get_url:
-        url: https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar
-        dest: C:\Alfresco\alfresco\addons\alfresco-mmt.jar
-    - name: Creando \modules\platform
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\modules\platform
-        state: directory
-    - name: Creando \modules\share
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\modules\share
-        state: directory
-    - name: Creando \bin
-      ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\bin
-        state: directory
-    - name: Download PDF Renderer
-      ansible.windows.win_get_url:
-        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer
-        dest: c:\Alfresco\alfresco\bin
-    - name: Download alfresco war
-      ansible.windows.win_get_url:
-        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war
-        dest: c:\Alfresco\alfresco\addons\war\alfresco.war
-    - name: Download alfresco classloader config files
-      ansible.windows.win_get_url:
-        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml
-        dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml
-    - name: Download share war
-      ansible.windows.win_get_url:
-        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war
-        dest: c:\Alfresco\alfresco\addons\war\share.war
-    - name: Download share classloader config files
-      ansible.windows.win_get_url:
-        url: https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml
-        dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml
-    - name: Download share services
-      ansible.windows.win_get_url:
-        url: https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp
-        dest: c:\Alfresco\alfresco\addons\alfresco\
-
-          #   sudo curl -s -o $ALF_HOME/solr6.zip $ASS_DOWNLOAD
-          #   echogreen "Expanding Solr6 file..."
-          #   cd $ALF_HOME
-          #   sudo unzip -q solr6.zip
-          #   sudo mv alfresco-search-services solr6
-          #   sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
-          #   sudo curl -s -o $ALF_HOME/solr6/solrhome/conf/shared.properties $BASE_DOWNLOAD/search/shared.properties
-          #   sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
-
-          #     curl -s -O $GOOGLEDOCSREPO
-          #     sudo mv alfresco-googledocs-repo*.amp $ALF_HOME/addons/alfresco/
-          #     curl  -s -O $GOOGLEDOCSSHARE
-          #     sudo mv alfresco-googledocs-share* $ALF_HOME/addons/share/
-          #     (cd $ALF_HOME/addons/alfresco;sudo curl -# -O $AOS_AMP)
-          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/_vti_bin.war $AOS_VTI
-          #     sudo curl -s -o $ALF_HOME/tomcat/webapps/ROOT.war $AOS_SERVER_ROOT
-          # 
-          #         sudo $ALF_HOME/addons/apply.sh all
-          #   sudo chmod u+x $ALF_HOME/solr6/solr.in.sh
-
-          #  if [ ! -f "$ALF_HOME/addons/apply.sh" ]; then
-          #    echo "Downloading apply.sh script..."
-          #    sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
-          #    sudo chmod u+x $ALF_HOME/addons/apply.sh
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }} "
+      loop:
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/server.xml', dest: C:\Alfresco\alfresco\tomcat\conf\server.xml }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar', dest: C:\Alfresco\alfresco\addons\alfresco-mmt.jar }
+        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer', dest: c:\Alfresco\alfresco\bin\alfresco-pdf-renderer}
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war', dest: c:\Alfresco\alfresco\addons\war\alfresco.war }
+        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml', dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war', dest: c:\Alfresco\alfresco\addons\war\share.war }
+        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml', dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp', dest: c:\Alfresco\alfresco\addons\alfresco\alfresco-share-services-6.2.0.amp }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/catalina.properties', dest: C:\Alfresco\alfresco\tomcat\conf\catalina.properties }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml', dest: C:\Alfresco\alfresco\tomcat\conf\tomcat-users.xml }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml', dest: C:\Alfresco\alfresco\tomcat\conf\context.xml }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\share-config-custom.xml }
+        - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: C:\Alfresco\alfresco\tomcat\shared\lib\postgresql-42.2.5.jar }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties } 
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-googledocs-repo-3.0.4.3.amp }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\share\alfresco-googledocs-share-3.0.4.3.amp }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-aos-module-1.2.2.amp } 
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: C:\Alfresco\alfresco\tomcat\webapps\_vti_bin.war }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: C:\Alfresco\alfresco\tomcat\webapps\ROOT.war }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
 
 
-          #  sudo curl -s -o /etc/nginx/nginx.conf $BASE_DOWNLOAD/nginx/nginx.conf
-          #  sudo curl -c 5 /etc/nginx/conf.d/alfresco.conf $BASE_DOWNLOAD/nginx/default
+# TODO, crear servicios
+# sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
 
-
-          # TODO, crear servicios
-
-#    sudo curl -s -o $ALF_HOME/alfresco-service.sh $BASE_DOWNLOAD/scripts/alfresco-service.sh
-#    sudo chmod 755 $ALF_HOME/alfresco-service.sh
-#    sudo sed -i "s/@@LOCALESUPPORT@@/$LOCALESUPPORT/g" $ALF_HOME/alfresco-service.sh 
-#    # Enable the service
-#    sudo systemctl enable alfresco.service
-#    sudo systemctl daemon-reload
-          #   if [ ! -f "$ALF_HOME/scripts/postgresql.sh" ]; then
-          #     echo "Downloading postgresql.sh install and setup script..."
-          #     sudo curl -s -o $ALF_HOME/scripts/postgresql.sh $BASE_DOWNLOAD/scripts/postgresql.sh
-          #   fi
-          # 
-          #   if [ ! -f "$ALF_HOME/scripts/limitconvert.sh" ]; then
-          #     echo "Downloading limitconvert.sh script..."
-          #     sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
-          #   fi
-
-# Las siguientes líneas que dicen #listo#, necesitan un condicional para que no se ejecuten 2 veces.
-
-
-# Se queda pegado y no hace nada. Falta forzarlo a que sea interactivo
-#fallo#
-#fallo#  - name: Tomcat
-#fallo#    win_package:
-#fallo#      path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
-#fallo#        #arguments: "/S" #/D=C:\Alfresco\Tomcat
-#fallo#      state: present
-    # apache-tomcat-8.5.11.exe /S /D=D:\softwares\Tomcat
+# TODO, traducir scripts
+# sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
+# sudo $ALF_HOME/addons/apply.sh all
+# sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
+# sudo curl -s -o $ALF_HOME/alfresco-service.sh $BASE_DOWNLOAD/scripts/alfresco-service.sh
+# sudo sed -i "s/@@LOCALESUPPORT@@/$LOCALESUPPORT/g" $ALF_HOME/alfresco-service.sh 
+# sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
