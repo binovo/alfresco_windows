@@ -122,6 +122,12 @@
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: C:\Alfresco\alfresco\tomcat\webapps\ROOT.war }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
+    - name: Copy config files
+      win_copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./resources/tomcat/server.xml, dest: C:\Alfresco\alfresco\tomcat\conf\server.xml }
     - name: Copy vanilla alfresco.war to webapps
       win_copy:
         src: "{{ alfresco_base_path }}addons\\war\\alfresco.war"
