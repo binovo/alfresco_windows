@@ -128,14 +128,14 @@
         dest: "{{ alfresco_base_path }}tomcat\\webapps\\alfresco.war"
         remote_src: yes
     - name: Install platform AMPs
-      win_shell: "{{ java_path }} -jar {{ alfresco_base_path }}addons\\alfresco-mmt.jar install {{ alfresco_base_path}}addons\\alfresco {{ alfresco_base_path}}tomcat\\webapps\\alfresco.war -force -directory -nobackup"
+      win_shell: "{{ java_path }} -jar {{ alfresco_base_path }}addons\\alfresco-mmt.jar install {{ alfresco_base_path }}addons\\alfresco {{ alfresco_base_path }}tomcat\\webapps\\alfresco.war -force -directory -nobackup"
     - name: Copy vanilla share.war to webapps
       win_copy:
         src: "{{ alfresco_base_path }}addons\\war\\share.war"
         dest: "{{ alfresco_base_path }}tomcat\\webapps\\share.war"
         remote_src: yes
     - name: Install Share AMPs
-      win_shell: "{{ java_path }} -jar {{ alfresco_base_path }}addons\\alfresco-mmt.jar install {{ alfresco_base_path}}addons\\share {{ alfresco_base_path}}tomcat\\webapps\\share.war -force -directory -nobackup"
+      win_shell: "{{ java_path }} -jar {{ alfresco_base_path }}addons\\alfresco-mmt.jar install {{ alfresco_base_path }}addons\\share {{ alfresco_base_path }}tomcat\\webapps\\share.war -force -directory -nobackup"
 
 # TODO, crear servicios
 # sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
