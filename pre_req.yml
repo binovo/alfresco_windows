@@ -4,10 +4,10 @@
     - name: Defining variables
       ansible.windows.win_environment:
         variables:
-          JAVA_HOME: c:\Alfresco\JDK11\jdk-11.0.11+9\
-          ALF_HOME: c:\Alfresco\alfresco
-          ALF_DATA_HOME: c:\Alfresco\alfresco\alf_data
-          CATALINA_HOME: c:\Alfresco\alfresco\tomcat
+          JAVA_HOME: "{{ java_path }}\\"
+          ALF_HOME: "{{ alfresco_base_path }}"
+          ALF_DATA_HOME: "{{ alf_data_path }}"
+          CATALINA_HOME: "{{ tomcat_path }}"
         level: machine
     - name: Creando directorios
       ansible.windows.win_file:
@@ -17,18 +17,17 @@
         - c:\Alfresco\installers
         - c:\Alfresco\installers\tmp
         - c:\Alfresco\JDK11
-        - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension
-        - c:\Alfresco\alfresco\tomcat\shared\lib
-        - c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost
-        - c:\Alfresco\alfresco\tomcat\shared\classes\alfresco\extension
-        - c:\Alfresco\alfresco\alf_data
-        - c:\Alfresco\alfresco\logs
-        - c:\Alfresco\alfresco\modules\platform
-        - c:\Alfresco\alfresco\modules\share
-        - c:\Alfresco\alfresco\bin
-        - c:\Alfresco\alfresco\addons\war
-        - c:\Alfresco\alfresco\addons\share
-        - c:\Alfresco\alfresco\addons\alfresco
+        - "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension"
+        - "{{ tomcat_path }}\\shared\\lib"
+        - "{{ tomcat_path }}\\conf\\Catalina\\localhost"
+        - "{{ tomcat_path }}\\shared\\classes\\alfresco\\extension"
+        - "{{ alfresco_base_path }}\\logs"
+        - "{{ alfresco_base_path }}\\modules\\platform"
+        - "{{ alfresco_base_path }}\\modules\\share"
+        - "{{ alfresco_base_path }}\\bin"
+        - "{{ alfresco_base_path }}\\addons\\war"
+        - "{{ alfresco_base_path }}\\addons\\share"
+        - "{{ alfresco_base_path }}\\addons\\alfresco"
         - c:\Alfresco\nginx
     - name: Downloading installers
       ansible.windows.win_get_url:
@@ -46,15 +45,17 @@
     - name: Install Tomcat
       win_package:
         path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
-        arguments: /S /D=c:\Alfresco\alfresco\tomcat
+        arguments: "/S /D={{ tomcat_path }}"
         state: present
+    - name: Increase JVM memory size
+      win_shell: "{{ tomcat_path }}\\bin\\Tomcat8.exe //US// {{ tomcat_service_params }}"
     - name: Borrando aplicaciones default de tomcat
       ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
+        path: "{{ tomcat_path }}\\webapps"
         state: absent
     - name: Recreando directorio webapps
       ansible.windows.win_file:
-        path: c:\Alfresco\alfresco\tomcat\webapps
+        path: "{{ tomcat_path }}\\webapps"
         state: directory
     - name: Installs Libreoffice from MSI
       win_package:
@@ -100,29 +101,54 @@
         url: "{{ item.url }}"
         dest: "{{ item.dest }} "
       loop:
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/server.xml', dest: C:\Alfresco\alfresco\tomcat\conf\server.xml }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar', dest: C:\Alfresco\alfresco\addons\alfresco-mmt.jar }
-        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer', dest: c:\Alfresco\alfresco\bin\alfresco-pdf-renderer}
-        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war', dest: c:\Alfresco\alfresco\addons\war\alfresco.war }
-        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco.xml', dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\alfresco.xml }
-        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war', dest: c:\Alfresco\alfresco\addons\war\share.war }
-        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml', dest: c:\Alfresco\alfresco\tomcat\conf\Catalina\localhost\share.xml }
-        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp', dest: c:\Alfresco\alfresco\addons\alfresco\alfresco-share-services-6.2.0.amp }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/catalina.properties', dest: C:\Alfresco\alfresco\tomcat\conf\catalina.properties }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml', dest: C:\Alfresco\alfresco\tomcat\conf\tomcat-users.xml }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml', dest: C:\Alfresco\alfresco\tomcat\conf\context.xml }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\share-config-custom.xml }
-        - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: C:\Alfresco\alfresco\tomcat\shared\lib\postgresql-42.2.5.jar }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar', dest: "{{ alfresco_base_path }}\\addons\\alfresco-mmt.jar" }
+        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer', dest: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war', dest: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war', dest: "{{ alfresco_base_path }}\\addons\\war\\share.war" }
+        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/share.xml', dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\share.xml" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-share-services-6.2.0.amp" }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/catalina.properties', dest: "{{ tomcat_path }}\\conf\\catalina.properties" }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml', dest: "{{ tomcat_path }}\\conf\\tomcat-users.xml" }
+        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml', dest: "{{ tomcat_path }}\\conf\\context.xml" }
+        - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: "{{ tomcat_path }}\\shared\\lib\\postgresql-42.2.5.jar" }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties } 
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-googledocs-repo-3.0.4.3.amp }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: C:\Alfresco\alfresco\addons\share\alfresco-googledocs-share-3.0.4.3.amp }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: C:\Alfresco\alfresco\addons\alfresco\alfresco-aos-module-1.2.2.amp } 
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: C:\Alfresco\alfresco\tomcat\webapps\_vti_bin.war }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: C:\Alfresco\alfresco\tomcat\webapps\ROOT.war }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-googledocs-repo-3.0.4.3.amp" }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: "{{ alfresco_base_path }}\\addons\\share\\alfresco-googledocs-share-3.0.4.3.amp" }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-aos-module-1.2.2.amp" } 
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: "{{ tomcat_path }}\\webapps\_vti_bin.war" }
+        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: "{{ tomcat_path }}\\webapps\\ROOT.war" }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
-
+    - name: Copy config files
+      win_copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./resources/tomcat/conf/server.xml, dest: "{{ tomcat_path }}\\conf\\server.xml" }
+        - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
+        - { src: ./resources/share-config-custom.xml, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension\\share-config-custom.xml" }
+    - name: Copy config templates
+      ansible.windows.win_template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./resources/alfresco-global.properties.j2, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco-global.properties" }
+        - { src: ./resources/tomcat/conf/Catalina/localhost/alfresco.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\alfresco.xml" }
+        - { src: ./resources/tomcat/conf/Catalina/localhost/share.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\share.xml" }
+    - name: Copy vanilla alfresco.war to webapps
+      win_copy:
+        src: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war"
+        dest: "{{ tomcat_path }}\\webapps\\alfresco.war"
+        remote_src: yes
+    - name: Install platform AMPs
+      win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\alfresco {{ tomcat_path }}\\webapps\\alfresco.war -force -directory -nobackup"
+    - name: Copy vanilla share.war to webapps
+      win_copy:
+        src: "{{ alfresco_base_path }}\\addons\\war\\share.war"
+        dest: "{{ tomcat_path }}\\webapps\\share.war"
+        remote_src: yes
+    - name: Install Share AMPs
+      win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\share {{ tomcat_path }}\\webapps\\share.war -force -directory -nobackup"
 
 # TODO, crear servicios
 # sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
