@@ -111,7 +111,6 @@
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/catalina.properties', dest: C:\Alfresco\alfresco\tomcat\conf\catalina.properties }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml', dest: C:\Alfresco\alfresco\tomcat\conf\tomcat-users.xml }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml', dest: C:\Alfresco\alfresco\tomcat\conf\context.xml }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/alfresco-global.properties', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/share-config-custom.xml', dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco\web-extension\share-config-custom.xml }
         - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: C:\Alfresco\alfresco\tomcat\shared\lib\postgresql-42.2.5.jar }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties } 
@@ -127,7 +126,14 @@
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
       loop:
-        - { src: ./resources/tomcat/server.xml, dest: C:\Alfresco\alfresco\tomcat\conf\server.xml }
+        - { src: ./resources/tomcat/conf/server.xml, dest: C:\Alfresco\alfresco\tomcat\conf\server.xml }
+        - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
+    - name: Copy config templates
+      ansible.windows.win_template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./resources/alfresco-global.properties.j2, dest: C:\Alfresco\alfresco\tomcat\shared\classes\alfresco-global.properties }
     - name: Copy vanilla alfresco.war to webapps
       win_copy:
         src: "{{ alfresco_base_path }}addons\\war\\alfresco.war"

@@ -5,7 +5,7 @@
 #-----------------------
 # File locations
 #-----------------------
-dir.root=/opt/alfresco/alf_data
+dir.root={{ alf_data_path|replace("\\", "\\\\") }}
 dir.contentstore=${dir.root}/contentstore
 dir.contentstore.deleted=${dir.root}/contentstore.deleted
 dir.cachedcontent=${dir.root}/cachedcontent
@@ -17,9 +17,9 @@ solr.backup.archive.remoteBackupLocation=${dir.root}/backupsolr
 #-----------------------
 # Database
 #-----------------------
-db.username=alfresco
-db.password=alfresco
-db.name=alfresco
+db.username={{ db_user }}
+db.password={{ db_password }}
+db.name={{ db_name }}
 db.host=localhost
 #db.port=3306
 #db.driver=com.mysql.jdbc.Driver
