@@ -148,6 +148,27 @@
         remote_src: yes
     - name: Install Share AMPs
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\share {{ tomcat_path }}\\webapps\\share.war -force -directory -nobackup"
+    - name: Instala nssm para servicios
+      win_chocolatey:
+        name:
+        - nssm
+        state: present
+    - name: Creating service for Tomcat
+      ansible.windows.win_service:
+        name: tomcat
+        path: "{{ java_path }}\\bin\\startup.bat"
+        description: Apache Tomcat for Alfresco
+    # Tomcat no funciona desde servicio, solo manual. TODO: Arreglar.
+    # "service.bat install Tomcat8" también falla.
+    - name: Creating service for Nginx
+      community.windows.win_nssm:
+        name: nginx
+        application: C:\Alfresco\nginx\nginx-1.21.0\nginx.exe
+        description: Nginx
+    - name: Starting up Nginx
+      ansible.windows.win_service:
+        name: nginx
+        state: started
 
 # TODO, crear servicios
 # sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
