@@ -47,7 +47,7 @@
         path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
         arguments: "/S /D={{ tomcat_path }}"
         state: present
-    - name: Increase JVM memory size
+    - name: Configure Tomcat Service
       win_shell: "{{ tomcat_path }}\\bin\\Tomcat8.exe //US// {{ tomcat_service_params }}"
     - name: Borrando aplicaciones default de tomcat
       ansible.windows.win_file:
