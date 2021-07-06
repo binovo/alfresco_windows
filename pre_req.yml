@@ -153,30 +153,33 @@
         name:
         - nssm
         state: present
-    - name: Creating service for Tomcat
-      ansible.windows.win_service:
-        name: tomcat
-        path: "{{ java_path }}\\bin\\startup.bat"
-        description: Apache Tomcat for Alfresco
-    # Tomcat no funciona desde servicio, solo manual. TODO: Arreglar.
-    # "service.bat install Tomcat8" también falla.
     - name: Creating service for Nginx
       community.windows.win_nssm:
         name: nginx
         application: C:\Alfresco\nginx\nginx-1.21.0\nginx.exe
         description: Nginx
-    - name: Starting up Nginx
+    # Tomcat no funciona desde servicio, solo manual. TODO: Arreglar.
+    # "service.bat install Tomcat8" también falla.
+    - name: Creating service for Tomcat
+      community.windows.win_nssm:
+        name: tomcat
+        application: "{{ tomcat_path }}\\bin\\startup.bat"
+        description: tomcat
+    - name: Creating service for Solr
+      community.windows.win_nssm:
+        name: solr
+        application: "{{ alfresco_base_path }}\\solr6\\solr\\bin\\solr.cmd"
+        arguments: start
+        description: Solr6
+    - name: Starting up services
       ansible.windows.win_service:
-        name: nginx
+        name: "{{ item }}"
         state: started
-
-# TODO, crear servicios
-# sudo curl -s -o /etc/systemd/system/alfresco-search.service $BASE_DOWNLOAD/search/alfresco-search.service
+      loop:
+        - nginx
+        - solr
 
 # TODO, traducir scripts
-# sudo curl -s -o $ALF_HOME/solr6/solr.in.sh $BASE_DOWNLOAD/search/solr.in.sh
 # sudo $ALF_HOME/addons/apply.sh all
 # sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
-# sudo curl -s -o $ALF_HOME/alfresco-service.sh $BASE_DOWNLOAD/scripts/alfresco-service.sh
-# sudo sed -i "s/@@LOCALESUPPORT@@/$LOCALESUPPORT/g" $ALF_HOME/alfresco-service.sh 
 # sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
