@@ -158,13 +158,6 @@
         name: nginx
         application: C:\Alfresco\nginx\nginx-1.21.0\nginx.exe
         description: Nginx
-    # Tomcat no funciona desde servicio, solo manual. TODO: Arreglar.
-    # "service.bat install Tomcat8" también falla.
-    - name: Creating service for Tomcat
-      community.windows.win_nssm:
-        name: tomcat
-        application: "{{ tomcat_path }}\\bin\\startup.bat"
-        description: tomcat
     - name: Creating service for Solr
       community.windows.win_nssm:
         name: solr
@@ -180,6 +173,4 @@
         - solr
 
 # TODO, traducir scripts
-# sudo $ALF_HOME/addons/apply.sh all
-# sudo curl -s -o $ALF_HOME/addons/apply.sh $BASE_DOWNLOAD/scripts/apply.sh
 # sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
