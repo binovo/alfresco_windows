@@ -10,7 +10,7 @@ En el servidor solamente es necesario configurar el sistema de WinRM, agregando 
 1. Desde powershell ejecutar:
 
 ```
-Invoke-WebRequest -Uri https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 -OutFile ConfigureRemotingForAnsible.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 -OutFile ConfigureRemotingForAnsible.ps1
 $username = "Administrator"
 $password = "gr33nc0r3."
 .\ConfigureRemotingForAnsible.ps1
