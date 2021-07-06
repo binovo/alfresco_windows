@@ -17,6 +17,7 @@
         - c:\Alfresco\installers
         - c:\Alfresco\installers\tmp
         - c:\Alfresco\JDK11
+        - "{{ tengines_path }}"
         - "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension"
         - "{{ tomcat_path }}\\shared\\lib"
         - "{{ tomcat_path }}\\conf\\Catalina\\localhost"
@@ -87,15 +88,10 @@
       community.windows.win_unzip:
         src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
         dest: c:\Alfresco\ImageMagick
-    - name: Unarchive solr6
+    - name: Unarchive Alfresco Search Services
       community.windows.win_unzip:
         src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
-        dest: c:\Alfresco\alfresco
-    - name: Renaming a-s-s to solr6
-      win_shell: rename-item alfresco-search-services solr6
-      args:
-        chdir: C:\Alfresco\alfresco
-        creates: C:\Alfresco\alfresco\solr6
+        dest: "{{ install_path }}"
     - name: Downloading config files
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
@@ -110,7 +106,6 @@
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/tomcat-users.xml', dest: "{{ tomcat_path }}\\conf\\tomcat-users.xml" }
         - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/tomcat/context.xml', dest: "{{ tomcat_path }}\\conf\\context.xml" }
         - { url: 'https://jdbc.postgresql.org/download/postgresql-42.2.5.jar', dest: "{{ tomcat_path }}\\shared\\lib\\postgresql-42.2.5.jar" }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/search/shared.properties', dest: C:\Alfresco\alfresco\solr6\solrhome\conf\shared.properties } 
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-repo/3.0.4.3/alfresco-googledocs-repo-3.0.4.3.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-googledocs-repo-3.0.4.3.amp" }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/integrations/alfresco-googledocs-share/3.0.4.3/alfresco-googledocs-share-3.0.4.3.amp', dest: "{{ alfresco_base_path }}\\addons\\share\\alfresco-googledocs-share-3.0.4.3.amp" }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-aos-module-1.2.2.amp" } 
@@ -126,6 +121,7 @@
         - { src: ./resources/tomcat/conf/server.xml, dest: "{{ tomcat_path }}\\conf\\server.xml" }
         - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
         - { src: ./resources/share-config-custom.xml, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension\\share-config-custom.xml" }
+        - { src: ./resources/alfresco-search-services/solrhome/conf/shared.properties, dest: "{{ ass_path }}\\solrhome\\conf\\shared.properties" }
     - name: Copy config templates
       ansible.windows.win_template:
         src: "{{ item.src }}"
@@ -153,24 +149,67 @@
         name:
         - nssm
         state: present
+    - name: Download T-Engines
+      ansible.windows.win_get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }} "
+      loop:
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-imagemagick-boot/2.5.1/alfresco-transform-imagemagick-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-imagemagick-boot-2.5.1.jar" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-libreoffice-boot/2.5.1/alfresco-transform-libreoffice-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-libreoffice-boot-2.5.1.jar" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-misc-boot/2.5.1/alfresco-transform-misc-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-misc-boot-2.5.1.jar" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-pdf-renderer-boot/2.5.1/alfresco-transform-pdf-renderer-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-pdf-renderer-boot-2.5.1.jar" }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-tika-boot/2.5.1/alfresco-transform-tika-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-tika-boot-2.5.1.jar" }
+    - name: Configure T-Engines start scripts
+      ansible.windows.win_template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./resources/tengines/tengine-imagemagick.bat.j2, dest: "{{ tengines_path }}\\tengine-imagemagick.bat" }
+        - { src: ./resources/tengines/tengine-libreoffice.bat.j2, dest: "{{ tengines_path }}\\tengine-libreoffice.bat" }
+        - { src: ./resources/tengines/tengine-misc.bat.j2, dest: "{{ tengines_path }}\\tengine-misc.bat" }
+        - { src: ./resources/tengines/tengine-pdfrenderer.bat.j2, dest: "{{ tengines_path }}\\tengine-pdfrenderer.bat" }
+        - { src: ./resources/tengines/tengine-tika.bat.j2, dest: "{{ tengines_path }}\\tengine-tika.bat" }
+    - name: Creating services for T-engines
+      community.windows.win_nssm:
+        name: "{{ item.serviceName }}"
+        application: "{{ tengines_path }}\\{{ item.serviceName }}.bat"
+        start_mode: delayed
+        display_name: "{{ item.displayName }}"
+        description: "{{ item.displayName }}"
+      loop:
+        - { serviceName: tengine-imagemagick , displayName: " Image Magick Transformation Engine"}
+        - { serviceName: tengine-libreoffice , displayName: " Libre Office Transformation Engine"}
+        - { serviceName: tengine-misc , displayName: " Miscelanea Transformation Engine"}
+        - { serviceName: tengine-pdfrenderer , displayName: " Pdf Renderer Transformation Engine"}
+        - { serviceName: tengine-tika , displayName: " Tika Transformation Engine"}
     - name: Creating service for Nginx
       community.windows.win_nssm:
         name: nginx
         application: C:\Alfresco\nginx\nginx-1.21.0\nginx.exe
+        start_mode: delayed
+        display_name: Nginx
         description: Nginx
-    - name: Creating service for Solr
+    - name: Creating service for Alfresco Search Services
       community.windows.win_nssm:
-        name: solr
-        application: "{{ alfresco_base_path }}\\solr6\\solr\\bin\\solr.cmd"
+        name: alfresco-search-services
+        application: "{{ ass_path }}\\solr\\bin\\solr.cmd"
         arguments: start
-        description: Solr6
+        start_mode: delayed
+        display_name: Alfresco Search Services
+        description: Alfresco Search Services
     - name: Starting up services
       ansible.windows.win_service:
         name: "{{ item }}"
         state: started
       loop:
+        - Tomcat8
+        - alfresco-search-services
+        - tengine-imagemagick
+        - tengine-libreoffice
+        - tengine-misc
+        - tengine-pdfrenderer
+        - tengine-tika
         - nginx
-        - solr
 
 # TODO, traducir scripts
 # sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
