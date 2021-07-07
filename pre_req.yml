@@ -8,6 +8,7 @@
           ALF_HOME: "{{ alfresco_base_path }}"
           ALF_DATA_HOME: "{{ alf_data_path }}"
           CATALINA_HOME: "{{ tomcat_path }}"
+          LIBREOFFICE_HOME: "{{ libreoffice_path }}"
         level: machine
     - name: Creando directorios
       ansible.windows.win_file:
@@ -58,11 +59,12 @@
       ansible.windows.win_file:
         path: "{{ tomcat_path }}\\webapps"
         state: directory
-    - name: Installs Libreoffice from MSI
+    - name: Install LibreOffice
       win_package:
         path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
+        arguments: "INSTALLLOCATION={{ libreoffice_path }} ISCHECKFORPRODUCTUPDATES=0"
         state: present
-    - name: Installs Pgsql
+    - name: Install Pgsql
       win_package:
         path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
