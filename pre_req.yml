@@ -169,7 +169,7 @@
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-tika-boot/2.5.1/alfresco-transform-tika-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-tika-boot-2.5.1.jar" }
     - name: Copy Pdf Renderer binary
       win_copy:
-        src: ./installers/alfresco-pdf-renderer.exe
+        src: ./external-resources/alfresco-pdf-renderer.exe
         dest: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
     - name: Configure T-Engines start scripts
       ansible.windows.win_template:
