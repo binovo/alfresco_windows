@@ -111,8 +111,6 @@
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-aos-module-1.2.2.amp" } 
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: "{{ tomcat_path }}\\webapps\_vti_bin.war" }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: "{{ tomcat_path }}\\webapps\\ROOT.war" }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/nginx.conf', dest: C:\Alfresco\nginx\nginx.conf }
-        - { url: 'https://raw.githubusercontent.com/Greencorecr/alfresco_windows/main/nginx/default', dest: C:\Alfresco\nginx\default }
     - name: Copy config files
       win_copy:
         src: "{{ item.src }}"
@@ -122,6 +120,12 @@
         - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
         - { src: ./resources/share-config-custom.xml, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension\\share-config-custom.xml" }
         - { src: ./resources/alfresco-search-services/solrhome/conf/shared.properties, dest: "{{ ass_path }}\\solrhome\\conf\\shared.properties" }
+        - { src: ./resources/nginx/nginx.conf, dest: "{{ nginx_path }}\\conf\\nginx.conf" }
+        - { src: ./resources/nginx/default.conf, dest: "{{ nginx_path }}\\conf\\default.conf" }
+        # Certificados SSL auto-generados. Cambiar en producción.
+        - { src: ./resources/nginx/privkey.pem, dest: "{{ nginx_path }}\\conf\\privkey.pem" }
+        - { src: ./resources/nginx/fullchain.pem, dest: "{{ nginx_path }}\\conf\\fullchain.pem" }
+
     - name: Copy config templates
       ansible.windows.win_template:
         src: "{{ item.src }}"
@@ -210,6 +214,23 @@
         - tengine-pdfrenderer
         - tengine-tika
         - nginx
-
+    - name: Firewall rule to allow TCP 80
+      community.windows.win_firewall_rule:
+        name: HTTP
+        localport: 80
+        action: allow
+        direction: in
+        protocol: tcp
+        state: present
+        enabled: yes
+    - name: Firewall rule to allow TCP 443
+      community.windows.win_firewall_rule:
+        name: HTTPS
+        localport: 443
+        action: allow
+        direction: in
+        protocol: tcp
+        state: present
+        enabled: yes
 # TODO, traducir scripts
 # sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh

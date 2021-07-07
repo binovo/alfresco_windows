@@ -27,9 +27,3 @@ $password = "gr33nc0r3."
 ansible-playbook -i inventory/hosts.ini pre_req.yml
 ```
 
-Los paquetes van a quedar en:
-
-|Paquete|Env|Directorio|
-|nginx|$Env:ChocolateyToolsLocation\Nginx |c:\tools\nginx-1.21.0\
-|PostgreSQL|$Env:ProgramFiles\PostgreSQL\11\|c:\Program Files\PostgreSQL\11\|
-
