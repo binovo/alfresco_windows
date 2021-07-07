@@ -10,6 +10,7 @@
           CATALINA_HOME: "{{ tomcat_path }}"
           LIBREOFFICE_HOME: "{{ libreoffice_path }}"
           PDFRENDERER_EXE: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
+          IMAGEMAGICK_EXE: "{{ imagemagick_path }}\\convert.exe"
         level: machine
     - name: Creando directorios
       ansible.windows.win_file:
@@ -90,7 +91,7 @@
     - name: Unarchive Imagemagick
       community.windows.win_unzip:
         src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
-        dest: c:\Alfresco\ImageMagick
+        dest: "{{ imagemagick_path }}"
     - name: Unarchive Alfresco Search Services
       community.windows.win_unzip:
         src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
