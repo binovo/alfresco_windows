@@ -9,6 +9,7 @@
           ALF_DATA_HOME: "{{ alf_data_path }}"
           CATALINA_HOME: "{{ tomcat_path }}"
           LIBREOFFICE_HOME: "{{ libreoffice_path }}"
+          PDFRENDERER_EXE: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
         level: machine
     - name: Creando directorios
       ansible.windows.win_file:
@@ -100,7 +101,6 @@
         dest: "{{ item.dest }} "
       loop:
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-mmt/6.0/alfresco-mmt-6.0.jar', dest: "{{ alfresco_base_path }}\\addons\\alfresco-mmt.jar" }
-        - { url: 'https://github.com/Greencorecr/alfresco_windows/raw/main/tomcat/alfresco-pdf-renderer', dest: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/content-services-community/6.2.0-ga/content-services-community-6.2.0-ga.war', dest: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/share/6.2.0/share-6.2.0.war', dest: "{{ alfresco_base_path }}\\addons\\war\\share.war" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-share-services/6.2.0/alfresco-share-services-6.2.0.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-share-services-6.2.0.amp" }
@@ -166,6 +166,10 @@
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-misc-boot/2.5.1/alfresco-transform-misc-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-misc-boot-2.5.1.jar" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-pdf-renderer-boot/2.5.1/alfresco-transform-pdf-renderer-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-pdf-renderer-boot-2.5.1.jar" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-tika-boot/2.5.1/alfresco-transform-tika-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-tika-boot-2.5.1.jar" }
+    - name: Copy Pdf Renderer binary
+      win_copy:
+        src: ./installers/alfresco-pdf-renderer.exe
+        dest: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
     - name: Configure T-Engines start scripts
       ansible.windows.win_template:
         src: "{{ item.src }}"
