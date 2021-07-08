@@ -151,6 +151,10 @@
         src: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war"
         dest: "{{ tomcat_path }}\\webapps\\alfresco.war"
         remote_src: yes
+    - name: Copy platform AMPs
+      win_copy:
+        src: ./external-resources/addons/amps/platform/
+        dest: "{{ alfresco_base_path }}\\addons\\alfresco\\"
     - name: Install platform AMPs
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\alfresco {{ tomcat_path }}\\webapps\\alfresco.war -force -directory -nobackup"
     - name: Copy vanilla share.war to webapps
@@ -158,6 +162,10 @@
         src: "{{ alfresco_base_path }}\\addons\\war\\share.war"
         dest: "{{ tomcat_path }}\\webapps\\share.war"
         remote_src: yes
+    - name: Copy share AMPs
+      win_copy:
+        src: ./external-resources/addons/amps/share/
+        dest: "{{ alfresco_base_path }}\\addons\\share\\"
     - name: Install Share AMPs
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\share {{ tomcat_path }}\\webapps\\share.war -force -directory -nobackup"
     - name: Instala nssm para servicios
