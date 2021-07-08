@@ -144,6 +144,7 @@
         - { src: ./resources/alfresco-global.properties.j2, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco-global.properties" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/alfresco.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\alfresco.xml" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/share.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\share.xml" }
+        - { src: ./resources/tomcat/conf/logging.properties.j2, dest: "{{ tomcat_path }}\\conf\\logging.properties" }
         - { src: ./resources/alfresco-search-services/solr.in.cmd.j2, dest: "{{ ass_path }}\\solr.in.cmd" }
     - name: Copy vanilla alfresco.war to webapps
       win_copy:
