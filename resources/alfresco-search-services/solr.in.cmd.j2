@@ -131,4 +131,4 @@ REM Tell SOLR to create cores on startup if required
 set SOLR_CREATE_ALFRESCO_DEFAULTS=alfresco,archive
 
 REM Relocate SOLR data 
-set SOLR_OPTS=%SOLR_OPTS% -Dsolr.data.dir.root={{ data_path }}\solr -Dsolr.solr.model.dir={{ data_path }}\solr\alfrescoModels
+set SOLR_OPTS=%SOLR_OPTS% -Dsolr.data.dir.root={{ data_path }}\solr -Dsolr.content.dir={{ data_path }}\solr -Dsolr.solr.model.dir={{ data_path }}\solr\alfrescoModels
