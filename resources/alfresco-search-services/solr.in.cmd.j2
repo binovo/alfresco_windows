@@ -79,8 +79,8 @@ REM This is an alternative to changing the rootLogger in log4j.properties
 REM set SOLR_LOG_LEVEL=INFO
 
 REM Location where Solr should write logs to. Absolute or relative to solr start dir
-set SOLR_LOGS_DIR=..\..\logs
-set LOG4J_CONFIG=file:!SOLR_LOGS_DIR!\log4j.properties
+set SOLR_LOGS_DIR={{ logs_path }}\solr
+set LOG4J_CONFIG=file:..\..\logs\log4j.properties
 
 REM Enables log rotation, cleanup, and archiving before starting Solr. Setting SOLR_LOG_PRESTART_ROTATION=false will skip start
 REM time rotation of logs, and the archiving of the last GC and console log files. It does not affect Log4j configuration. This
@@ -129,3 +129,6 @@ REM set SOLR_OPTS=%SOLR_OPTS% %SOLR_ZK_CREDS_AND_ACLS%
 
 REM Tell SOLR to create cores on startup if required
 set SOLR_CREATE_ALFRESCO_DEFAULTS=alfresco,archive
+
+REM Relocate SOLR data 
+set SOLR_OPTS=%SOLR_OPTS% -Dsolr.data.dir.root={{ data_path }}\solr -Dsolr.solr.model.dir={{ data_path }}\solr\alfrescoModels
