@@ -55,7 +55,7 @@
         dest: c:\Alfresco\JDK11
     - name: Install Tomcat
       win_package:
-        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.68/bin/apache-tomcat-8.5.68.exe
+        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.69/bin/apache-tomcat-8.5.68.exe
         arguments: "/S /D={{ tomcat_path }}"
         state: present
     - name: Configure Tomcat Service
