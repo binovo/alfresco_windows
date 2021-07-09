@@ -15,9 +15,9 @@ jobs:
       - name: Habilita WSL
         shell: powershell
         run: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
-      - name: Habilita Virt para WSL
-        shell: powershell
-        run: Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
+#      - name: Habilita Virt para WSL
+#        shell: powershell
+#        run: Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
       - name: Crea directorios para instaladores
         shell: powershell
         run: New-Item -Path "c:\" -name "Alfresco\installers\" -ItemType "direcoty"
