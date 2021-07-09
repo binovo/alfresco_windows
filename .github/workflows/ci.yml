@@ -30,9 +30,18 @@ jobs:
       - name: Listando archivos de WSL
         shell: powershell
         run: Get-ChildItem -Path c:\Alfresco\installers\
-      - name: Probando WSL
+      - name: Instalando WSL
         shell: powershell
         run: c:\Alfresco\installers\ubuntu2004.exe install --root
-      - name: Probando WSL
+      - name: Actualizando paquetes
         shell: powershell
         run: c:\Alfresco\installers\ubuntu2004.exe run sudo apt update -y
+      - name: Actualizando paquetes
+        shell: powershell
+        run: c:\Alfresco\installers\ubuntu2004.exe run pip3 install ansible
+      - name: Bajando repo
+        shell: powershell
+        run: c:\Alfresco\installers\ubuntu2004.exe run git clone https://github.com/Greencorecr/alfresco_windows.git
+      - name: Ejecutando ansible
+        shell: powershell
+        run: c:\Alfresco\installers\ubuntu2004.exe run ansible-playbook -i alfresco_windows/inventory/hosts.ini alfresco_windows/pre_req.yml
