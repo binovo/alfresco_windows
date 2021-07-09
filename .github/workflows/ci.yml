@@ -26,7 +26,7 @@ jobs:
         run: Invoke-WebRequest -Uri https://aka.ms/wslubuntu2004 -OutFile c:\Alfresco\installers\Ubuntu.zip -UseBasicParsing
       - name: Desempaqueta Ubuntu
         shell: powershell
-        run: Expand-Archive c:\Alfresco\installers\Ubuntu.zip
+        run: Expand-Archive c:\Alfresco\installers\Ubuntu.zip -DestinationPath c:\Alfresco\installers\
       - name: Listando archivos de WSL
         shell: powershell
         run: Get-ChildItem -Path c:\Alfresco\installers\
