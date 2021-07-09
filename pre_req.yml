@@ -45,13 +45,30 @@
         - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-pdf-renderer/1.1/alfresco-pdf-renderer-1.1-win64.tgz', dest: C:\Alfresco\installers\alfresco-pdf-renderer-1.1-win64.tgz }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-search-services/1.4.3.4/alfresco-search-services-1.4.3.4.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip }
+    - name: Instalar NuGet
+      ansible.windows.win_powershell:
+        script: "Install-PackageProvider -Name NuGet -Force"
+    - name: Instalar Pscx
+      ansible.windows.win_powershell:
+        script: "Install-Module Pscx -Scope CurrentUser -Force -AllowClobber"
+    - name: Descomprimiendo PDF Renderer
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\alfresco-pdf-renderer-1.1-win64.tgz
+        dest: c:\Alfresco\installers\tmp\
+    - name: Desempaquetando PDF Renderer
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\tmp\alfresco-pdf-renderer-1.1-win64.tar
+        dest: c:\Alfresco\installers\tmp\
+    - name: Instalando PDF Renderer
+      ansible.windows.win_powershell:
+        script: Move-Item -Path c:\Alfresco\installers\tmp\alfresco-pdf-renderer.exe  -Destination "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
     - name: Desempaquetando JDK
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
         dest: c:\Alfresco\JDK11
     - name: Instalando Tomcat
       win_package:
-        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.69/bin/apache-tomcat-8.5.68.exe
+        path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.69/bin/apache-tomcat-8.5.69.exe
         arguments: "/S /D={{ tomcat_path }}"
         state: present
     - name: Configurando Servicio de Tomcat

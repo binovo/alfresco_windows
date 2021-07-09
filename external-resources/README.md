@@ -12,10 +12,6 @@ A continuación se listan una serie de ficheros que obligatoriamente deben ser p
 
 **Atención desarrolladores!!!** Es importante mantener esta lista actualizada
 
-- alfresco-pdf-renderer.exe
-
-Descargar y extraer de <https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-pdf-renderer/1.1/alfresco-pdf-renderer-1.1-win64.tgz>
-
 - installers/alfresco-search-services-1.4.3.4.zip
 
 Descargar de <https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-search-services/1.4.3.4/alfresco-search-services-1.4.3.4.zip>
