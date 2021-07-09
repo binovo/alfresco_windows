@@ -27,3 +27,9 @@ jobs:
       - name: Desempaqueta Ubuntu
         shell: powershell
         run: Expand-Archive c:\Alfresco\installers\Ubuntu.zip
+      - name: Listando archivos de WSL
+        shell: powershell
+        run: Get-ChildItem -Path c:\Alfresco\installers\
+      - name: Probando WSL
+        shell: powershell
+        run: c:\Alfresco\installers\Ubuntu\ubuntu2004.exe ls /
