@@ -12,7 +12,7 @@
           PDFRENDERER_EXE: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
           IMAGEMAGICK_EXE: "{{ imagemagick_path }}\\convert.exe"
         level: machine
-    - name: Creando directorios
+    - name: Creating directories
       ansible.windows.win_file:
         path: "{{ item }}"
         state: directory
@@ -20,6 +20,8 @@
         - c:\Alfresco\installers
         - c:\Alfresco\installers\tmp
         - c:\Alfresco\JDK11
+        - "{{ data_path }}"
+        - "{{ logs_path }}"
         - "{{ tengines_path }}"
         - "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension"
         - "{{ tomcat_path }}\\shared\\lib"
@@ -41,7 +43,12 @@
         - { url: 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip', dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip }
         - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip }
         - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-search-services/1.3.0.1/alfresco-search-services-1.3.0.1.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip }
+    - name: Copy installers
+      win_copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: ./external-resources/installers/alfresco-search-services-1.4.3.4.zip, dest: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip}
     - name: Unarchive JDK
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
@@ -94,7 +101,7 @@
         dest: "{{ imagemagick_path }}"
     - name: Unarchive Alfresco Search Services
       community.windows.win_unzip:
-        src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
+        src: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip
         dest: "{{ install_path }}"
     - name: Downloading config files
       ansible.windows.win_get_url:
@@ -122,7 +129,7 @@
         - { src: ./resources/tomcat/conf/server.xml, dest: "{{ tomcat_path }}\\conf\\server.xml" }
         - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
         - { src: ./resources/share-config-custom.xml, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension\\share-config-custom.xml" }
-        - { src: ./resources/alfresco-search-services/solrhome/conf/shared.properties, dest: "{{ ass_path }}\\solrhome\\conf\\shared.properties" }
+        - { src: ./resources/alfresco-search-services/solrhome, dest: "{{ ass_path }}" }
         - { src: ./resources/nginx/nginx.conf, dest: "{{ nginx_path }}\\conf\\nginx.conf" }
         - { src: ./resources/nginx/default.conf, dest: "{{ nginx_path }}\\conf\\default.conf" }
         # Certificados SSL auto-generados. Cambiar en producción.
@@ -137,21 +144,39 @@
         - { src: ./resources/alfresco-global.properties.j2, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco-global.properties" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/alfresco.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\alfresco.xml" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/share.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\share.xml" }
+        - { src: ./resources/tomcat/conf/logging.properties.j2, dest: "{{ tomcat_path }}\\conf\\logging.properties" }
         - { src: ./resources/alfresco-search-services/solr.in.cmd.j2, dest: "{{ ass_path }}\\solr.in.cmd" }
     - name: Copy vanilla alfresco.war to webapps
       win_copy:
         src: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war"
         dest: "{{ tomcat_path }}\\webapps\\alfresco.war"
         remote_src: yes
+    - name: Copy platform AMPs
+      win_copy:
+        src: ./external-resources/addons/amps/platform/
+        dest: "{{ alfresco_base_path }}\\addons\\alfresco\\"
+
     - name: Install platform AMPs
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\alfresco {{ tomcat_path }}\\webapps\\alfresco.war -force -directory -nobackup"
+    - name: Copy platform modules
+      win_copy:
+        src: ./external-resources/addons/modules/platform/
+        dest: "{{ alfresco_base_path }}\\modules\\platform\\"
     - name: Copy vanilla share.war to webapps
       win_copy:
         src: "{{ alfresco_base_path }}\\addons\\war\\share.war"
         dest: "{{ tomcat_path }}\\webapps\\share.war"
         remote_src: yes
+    - name: Copy share AMPs
+      win_copy:
+        src: ./external-resources/addons/amps/share/
+        dest: "{{ alfresco_base_path }}\\addons\\share\\"
     - name: Install Share AMPs
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\share {{ tomcat_path }}\\webapps\\share.war -force -directory -nobackup"
+    - name: Copy share modules
+      win_copy:
+        src: ./external-resources/addons/modules/share/
+        dest: "{{ alfresco_base_path }}\\modules\\share\\"
     - name: Instala nssm para servicios
       win_chocolatey:
         name:
@@ -205,7 +230,7 @@
       community.windows.win_nssm:
         name: alfresco-search-services
         application: "{{ ass_path }}\\solr\\bin\\solr.cmd"
-        arguments: start
+        arguments: start -f
         start_mode: delayed
         display_name: Alfresco Search Services
         description: Alfresco Search Services
