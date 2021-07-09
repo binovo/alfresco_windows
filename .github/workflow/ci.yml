@@ -1,11 +1,17 @@
-name: Install on CI
+name: Instalar Alfresco en CI
+# 1. Instalar WSL1 y Ubuntu, e instalar ansible
+# 2. Ejecutar receta de ansible
 
 on: 
   push
-jobs:
-  install:
-     runs-on: windows-latest
-     steps:
-     - uses: actions/checkout@v1
-     - run: ls
 
+jobs:
+  ansible_install:
+    name: Instalar WSL1 y Ubuntu
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Habilita WSL
+        shell: powershell
+        run: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
