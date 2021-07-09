@@ -32,4 +32,4 @@ jobs:
         run: Get-ChildItem -Path c:\Alfresco\installers\
       - name: Probando WSL
         shell: powershell
-        run: c:\Alfresco\installers\Ubuntu\ubuntu2004.exe ls /
+        run: c:\Alfresco\installers\ubuntu2004.exe sudo apt update -y
