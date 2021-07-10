@@ -36,7 +36,10 @@ jobs:
       - name: Actualizando paquetes
         shell: powershell
         run: c:\Alfresco\installers\ubuntu2004.exe run sudo apt update -y
-      - name: Actualizando paquetes
+      - name: Instalando pip3
+        shell: powershell
+        run: c:\Alfresco\installers\ubuntu2004.exe run apt-get install -y python3-pip
+      - name: Instalando ansible
         shell: powershell
         run: c:\Alfresco\installers\ubuntu2004.exe run pip3 install ansible
       - name: Bajando repo
