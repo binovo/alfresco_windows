@@ -59,12 +59,12 @@ system.serverMode=UNKNOWN
 # System paramaters
 #-----------------------
 alfresco.context=alfresco
-alfresco.host=localhost
+alfresco.host={{ alfresco_hostname }} 
 alfresco.port=8080
 alfresco.protocol=http
 #
 share.context=share
-share.host=localhost
+share.host={{ alfresco_hostname }}
 share.port=443
 share.protocol=https
 
@@ -76,7 +76,7 @@ opencmis.context.value=
 opencmis.servletpath.override=false
 opencmis.servletpath.value=
 opencmis.server.override=false
-opencmis.server.value=https://localhost:443
+opencmis.server.value=https://{{ alfresco_hostname }}:443
 
 # Alfresco Office Services override
 #aos.baseUrlOverwrite=https://localhost:443/alfresco/aos
@@ -102,7 +102,7 @@ messaging.subsystem.autoStart=false
 # External locations
 #-----------------------
 jodconverter.enabled=true
-jodconverter.officeHome=/opt/libreoffice6.4
+jodconverter.officeHome={{ libreoffice_path }}
 #Number of instances, add more port numbers for more
 jodconverter.portNumbers=2022,2023
 # The maximum number of OOo-related tasks to perform before a process restart
@@ -114,7 +114,7 @@ jodconverter.taskQueueTimeout=30000
 jodconverter.connectTimeout=25000
 
 # Alfresco PDF Renderer
-alfresco-pdf-renderer.root=/opt/alfresco/bin
+alfresco-pdf-renderer.root={{ alfresco_base_path }}\bin
 alfresco-pdf-renderer.exe=${alfresco-pdf-renderer.root}/alfresco-pdf-renderer
 #Shell script to limit cpu used by ImageMagick convert. Edit to match your number of cpu:s
 img.exe=/opt/alfresco/scripts/limitconvert.sh
@@ -168,12 +168,12 @@ smart.folders.enabled=false
 # Email
 #-----------------------
 # Outbound Email Configuration
-mail.host=smtp.example.com
+mail.host={{ mail_host }}
 mail.port=25
 mail.username=anonymous
 mail.password=
 mail.encoding=UTF-8
-mail.from.default=alfresco@demo.alfresco.org
+mail.from.default={{ mail_from_default }}
 mail.protocol=smtp
 # Use mail.from.default as sender by default, some smtp servers doesn't allow for impersonation.
 mail.from.enabled=false
@@ -249,13 +249,104 @@ content.transformer.JodConverter.extensions.vsd.pdf.maxSourceSizeKBytes=5120
 content.transformer.JodConverter.extensions.vsdx.pdf.maxSourceSizeKBytes=5120
 content.transformer.JodConverter.extensions.ppsx.pdf.maxSourceSizeKBytes=5120
 
-# Alfresco Transform Service
+{{ ldap_auth }}
+
+### tranformador para expedientes administrativos
+greencore-cases.wkhtmltopdf.exe=c:\Alfresco\wkhtmltopdf\wkhtmltox\bin\wkhtmltopdf.exe
+
+#######################
+###Mod. Trazabilidad###
+#######################
+greencore.trace.db.driver=org.postgresql.Driver
+greencore.trace.db.url=jdbc:postgresql://localhost:5432/trazas
+greencore.trace.db.username=trazas_user
+greencore.trace.db.password=ACievo6hahbu7ijaejee
+greencore.trace.db.pool.initial=1
+greencore.trace.db.pool.min=1
+greencore.trace.db.pool.max=10
+greencore.trace.db.pool.idle=1
+greencore.trace.db.txn.isolation=-1
+greencore.trace.db.pool.statements.enable=true
+greencore.trace.db.pool.statements.max=40
+greencore.trace.db.pool.wait.max=5000
+greencore.trace.db.pool.validate.query=
+greencore.trace.db.pool.evict.interval=600000
+greencore.trace.db.pool.evict.validate=false
+greencore.trace.db.pool.evict.idle.min=1800000
+greencore.trace.db.pool.evict.num.tests=-1
+greencore.trace.db.pool.validate.borrow=true
+greencore.trace.db.pool.validate.return=false
+greencore.trace.db.pool.abandoned.detect=false
+greencore.trace.db.pool.abandoned.time=300
+greencore.trace.db.pool.abandoned.log=false
+greencore.trace.field.action.maxLength=100
+greencore.trace.field.action.truncationMethod=TRUNCATE_END
+greencore.trace.field.author.maxLength=100
+greencore.trace.field.author.truncationMethod=TRUNCATE_END
+greencore.trace.field.filename.maxLength=1024
+greencore.trace.field.filename.truncationMethod=TRUNCATE_END
+greencore.trace.field.fullname.maxLength=100
+greencore.trace.field.fullname.truncationMethod=TRUNCATE_END
+greencore.trace.field.path.maxLength=1024
+greencore.trace.field.path.truncationMethod=TRUNCATE_START
+greencore.trace.field.user.maxLength=100
+greencore.trace.field.user.truncationMethod=TRUNCATE_END
+greencore.trace.field.versionLabel.maxLength=100
+greencore.trace.field.versionLabel.truncationMethod=TRUNCATE_END
+greencore.trace.dump.batchSize=200
+greencore.trace.dump.cron=0 0/5 * * * ?
+greencore.trace.dump.enabled=true
+greencore.trace.dump.lockTimeSeconds=180
+greencore.trace.search.maxResults=100
+audit.enabled=true
+audit.greencore-trace.enabled=true
+greencore.trace.dump.tracedProperties=regN:activeType,regN:informationType
+greencore.trace.producer.contentTransaction.enabled=true
+greencore.trace.producer.notification.enabled=true
+greencore.trace.producer.notification.supportedTypes=FIXED_LESS_THAN_5_DAYS,FIXED_LESS_THAN_1_DAYS,FIXED_EXPIRED
+greencore.trace.producer.signature.enabled=true
+greencore.trace.producer.watermarkedDownload.enabled=true
+
+## Reportes
+## Carpeta donde se almacenara los informes o reportes
+greencore.reports.reportsHistoryFolderNodeRef=workspace://SpacesStore/dd5cb4b7-4533-4845-b074-7764be117799
+## Cron por segundos, minutos, horas
+greencore.reports.scheduledReportGeneration.cron=0 0 1 * * ?
+
+# Disable quickshare functionality (deshabilitar funcionalidad de compartir)
+system.quickshare.enabled=false
+# Greencore's Registro Nacional's custom properties
+greencore-cases.caseContentTemplate=workspace://SpacesStore/reg-nacional-case-template
+
+greencore.nameCodingService.consecutiveOrder=20
+greencore.nameCodingService.yearOrder=21
+
+# Greencore's Registro Nacional's custom properties
+greencore-notifications.service.mode=FIXED
+greencore-notifications.service.initialSemaphoreGroup=NONE
+
+
+### Descarga con Marca de Agua
+
+rendition.config.dir=/opt/alfresco/tomcat/shared/classes/alfresco/extension/transform/renditions
 local.transform.service.enabled=true
-localTransform.pdfrenderer.url=http://localhost:8190/
-localTransform.imagemagick.url=http://localhost:8191/
-localTransform.libreoffice.url=http://localhost:8192/
-localTransform.tika.url=http://localhost:8193/
-localTransform.misc.url=http://localhost:8194/
+localTransform.gcWatermarker.url=http://localhost:8090/
+#localTransform.gcWatermarker.url=http://localhost:8195/
+greencore-cases.alternativeRendition=gcWatermarker
+
+
+# Alfresco Transform Service
+#local.transform.service.enabled=true
+#localTransform.pdfrenderer.url=http://localhost:8190/
+#localTransform.imagemagick.url=http://localhost:8191/
+#localTransform.libreoffice.url=http://localhost:8192/
+#localTransform.tika.url=http://localhost:8193/
+#localTransform.misc.url=http://localhost:8194/
+localTransform.pdfrenderer.url=
+localTransform.imagemagick.url=
+localTransform.libreoffice.url=
+localTransform.tika.url=
+localTransform.misc.url=
 
 legacy.transform.service.enabled=true
 alfresco-pdf-renderer.url=http://localhost:8190/
@@ -263,3 +354,5 @@ img.url=http://localhost:8191/
 jodconverter.url=http://localhost:8192/
 tika.url=http://localhost:8193/
 transform.misc.url=http://localhost:8194/
+
+greencore-signatures.verification.exe=c:\Alfresco\greencore-signature-verifier\greencore-signature-verifier.bat

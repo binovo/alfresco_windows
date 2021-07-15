@@ -24,6 +24,6 @@ $password = "gr33nc0r3."
 2. Ejecutamos receta de ansible. Dura algunos minutos mientras descarga e instala los diversos componentes.
 
 ```
-ansible-playbook -i inventory/hosts.ini pre_req.yml
+ansible-playbook -i inventory/hosts.ini instalador_alfresco.yml
 ```
 

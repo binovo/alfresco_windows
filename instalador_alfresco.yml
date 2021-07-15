@@ -1,7 +1,53 @@
 ---
 - hosts: windows2019
+  vars:
+    ldap_auth: |
+      # Añadimos a la cadena de autenticación una instancia LDAP
+      authentication.chain=alfrescoNtlm1:alfrescoNtlm,ldap-autenticacion:ldap-ad,ldap-asesoria-legal:ldap-ad,ldap-bienes-inmuebles:ldap-ad,ldap-bienes-muebles:ldap-ad,ldap-catastro:ldap-ad,ldap-derechos-de-autor:ldap-ad,ldap-directores:ldap-ad,ldap-modulo-administrativo:ldap-ad,ldap-personas-juridicas:ldap-ad,ldap-politica-seguridad-computadoras:ldap-ad,ldap-propiedad-industrial:ldap-ad,ldap-regional:ldap-ad,ldap-servicios-registrales:ldap-ad,ldap-informatica-administrativo:ldap-ad,ldap-informatica-atencion-al-usuario:ldap-ad,ldap-informatica-bases-de-datos:ldap-ad,ldap-informatica-jefatura:ldap-ad,ldap-informatica-man-users:ldap-ad,ldap-informatica-operaciones:ldap-ad,ldap-seguridad:ldap-ad,ldap-informatica-sistemas:ldap-ad,ldap-informatica-telecomunicaciones:ldap-ad,ldap-unidad-de-validacion:ldap-ad,ldap-ign:ldap-ad,ldap-greencore:ldap-ad
+    
+      # Desactivamos la sincronización estándar de LDAP
+      ldap.synchronization.active=false
+      # Habilitamos la autenticación vía LDAP
+      ldap.authentication.active=false
+      ldap.authentication.java.naming.provider.url=ldap://RNPDOM01:389
+      ldap.authentication.java.naming.security.authentication=simple
+      ldap.authentication.userNameFormat=%s@rnpcr.priv
+      ldap.authentication.allowGuestLogin=false
+      ldap.authentication.defaultAdministratorUserNames=
+      ldap.synchronization.java.naming.security.authentication=simple
+      ldap.synchronization.java.naming.security.principal=username
+      ldap.synchronization.java.naming.security.credentials=password
+      ldap.synchronization.groupQuery=(objectclass=NOSINCRONIZARGRUPOS)
+      ldap.synchronization.groupDifferentialQuery=(objectclass=NOSINCRONIZARGRUPOS)
+      ldap.synchronization.groupSearchBase=dc=rnpcr,dc=priv
+      ldap.synchronization.userSearchBase=dc=rnpcr,dc=priv
+      synchronization.synchronizeChangesOnly=true
+      synchronization.import.cron=0 0 0 * * ?
+      #
+      # Prohíbimos la creación automática de cuentas de usuario para evitar que se creen
+      # accidentalmente cuentas con el mecanismo estándar.
+      synchronization.autoCreatePeopleOnLogin=false
+      # Habilitamos y configuramos los parámetros de nuestro módulo cuyo valor por defecto
+      # no nos sirve.
+      una.singleLdapUserSync.enableSingleLdapUserSync=false
+      #Producción
+      una.ldap.authentication.java.naming.provider.url=ldap://RNPDOM01:389
+      #Pruebas
+      #una.ldap.authentication.java.naming.provider.url=ldap://10.0.2.76:389
+      una.ldap.synchronization.java.naming.security.principal=usr_GestorDoc_Log_P
+      #Producción
+      una.ldap.synchronization.java.naming.security.credentials=P4ssw0rd1
+      #Pruebas
+      #una.ldap.synchronization.java.naming.security.credentials=123456
+      una.singleLdapUserSync.userSearchPattern=(&(objectClass=person)(samaccountname={0}))
+      una.singleLdapUserSync.emailPattern={0}@rnp.go.cr
+      una.singleLdapUserSync.firstNameAttributeName=givenname
+      una.singleLdapUserSync.lastNameAttributeName=sn
+      una.singleLdapUserSync.searchBase=dc=rnpcr,dc=priv
+      una.singleLdapUserSync.userIdAttributeName=samaccountname
+
   tasks:
-    - name: Defining variables
+    - name: Definiendo variables de entorno
       ansible.windows.win_environment:
         variables:
           JAVA_HOME: "{{ java_path }}\\"
@@ -17,9 +63,10 @@
         path: "{{ item }}"
         state: directory
       loop:
-        - c:\Alfresco\installers
-        - c:\Alfresco\installers\tmp
-        - c:\Alfresco\JDK11
+        - "{{ install_path }}\\installers\\tmp"
+        - "{{ install_path }}\\Alfresco\\JDK11"
+        - "{{ data_path }}"
+        - "{{ logs_path }}"
         - "{{ tengines_path }}"
         - "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension"
         - "{{ tomcat_path }}\\shared\\lib"
@@ -32,8 +79,9 @@
         - "{{ alfresco_base_path }}\\addons\\war"
         - "{{ alfresco_base_path }}\\addons\\share"
         - "{{ alfresco_base_path }}\\addons\\alfresco"
-        - c:\Alfresco\nginx
-    - name: Downloading installers
+        - "{{ install_path }}\\nginx"
+        - "{{ install_path }}\\wkhtmltopdf"
+    - name: Descargando instaladores
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
         dest: "{{ item.dest }} "
@@ -41,17 +89,36 @@
         - { url: 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip', dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip }
         - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip }
         - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
-        - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-search-services/1.3.0.1/alfresco-search-services-1.3.0.1.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip }
-    - name: Unarchive JDK
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-pdf-renderer/1.1/alfresco-pdf-renderer-1.1-win64.tgz', dest: C:\Alfresco\installers\alfresco-pdf-renderer-1.1-win64.tgz }
+        - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-search-services/1.4.3.4/alfresco-search-services-1.4.3.4.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip }
+        - { url: 'https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.mxe-cross-win64.7z', dest: C:\Alfresco\installers\wkhtmltox-0.12.6-1.mxe-cross-win64.7z }
+    - name: Instalar NuGet
+      ansible.windows.win_powershell:
+        script: "Install-PackageProvider -Name NuGet -Force"
+    - name: Instalar Pscx
+      ansible.windows.win_powershell:
+        script: "Install-Module Pscx -Scope CurrentUser -Force -AllowClobber"
+    - name: Descomprimiendo PDF Renderer
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\alfresco-pdf-renderer-1.1-win64.tgz
+        dest: c:\Alfresco\installers\tmp\
+    - name: Desempaquetando PDF Renderer
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\tmp\alfresco-pdf-renderer-1.1-win64.tar
+        dest: c:\Alfresco\installers\tmp\
+    - name: Instalando PDF Renderer
+      ansible.windows.win_powershell:
+        script: Move-Item -Path c:\Alfresco\installers\tmp\alfresco-pdf-renderer.exe  -Destination "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
+    - name: Desempaquetando JDK
       community.windows.win_unzip:
         src: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip
         dest: c:\Alfresco\JDK11
-    - name: Install Tomcat
+    - name: Instalando Tomcat
       win_package:
         path: https://downloads.apache.org/tomcat/tomcat-8/v8.5.69/bin/apache-tomcat-8.5.69.exe
         arguments: "/S /D={{ tomcat_path }}"
         state: present
-    - name: Configure Tomcat Service
+    - name: Configurando Servicio de Tomcat
       win_shell: "{{ tomcat_path }}\\bin\\Tomcat8.exe //US// {{ tomcat_service_params }}"
     - name: Borrando aplicaciones default de tomcat
       ansible.windows.win_file:
@@ -61,42 +128,42 @@
       ansible.windows.win_file:
         path: "{{ tomcat_path }}\\webapps"
         state: directory
-    - name: Install LibreOffice
+    - name: Instalando LibreOffice
       win_package:
         path: https://mirrors.ucr.ac.cr/tdf/libreoffice/stable/7.1.4/win/x86_64/LibreOffice_7.1.4_Win_x64.msi
         arguments: "INSTALLLOCATION={{ libreoffice_path }} ISCHECKFORPRODUCTUPDATES=0"
         state: present
-    - name: Install Pgsql
+    - name: Instalando PostgreSQL
       win_package:
         path: https://get.enterprisedb.com/postgresql/postgresql-11.12-2-windows-x64.exe
         arguments: --mode unattended --prefix c:\Alfresco\PostgreSQL11
         state: present
         creates_path: c:\Alfresco\PostgreSQL11
-    - name: Prepare db creation template
+    - name: Preparando esquema de base de datos
       ansible.windows.win_template:
         src: ./resources/create-db.sql.j2
         dest: C:\Alfresco\installers\tmp\create-db.sql
-    - name: Create alfresco database
+    - name: Creando base de datos alfresco
       ansible.windows.win_shell: |
         $env:PGPASSWORD = "postgres"
         C:\Alfresco\PostgreSQL11\bin\psql.exe -U postgres -f C:\Alfresco\installers\tmp\create-db.sql
-    - name: Delete db creation template
-      ansible.windows.win_file:
-        path: C:\Alfresco\installers\tmp\create-db.sql
-        state: absent
-    - name: Unarchive nginx
+    - name: Desempaquetando nginx
       community.windows.win_unzip:
         src: C:\Alfresco\installers\nginx-1.21.0.zip
         dest: c:\Alfresco\nginx
-    - name: Unarchive Imagemagick
+    - name: Desempaquetando Imagemagick
       community.windows.win_unzip:
         src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
         dest: "{{ imagemagick_path }}"
-    - name: Unarchive Alfresco Search Services
+    - name: Desempaquetando wkhtmltopdf
       community.windows.win_unzip:
-        src: C:\Alfresco\installers\alfresco-search-services-1.3.0.1.zip
+        src: C:\Alfresco\installers\wkhtmltox-0.12.6-1.mxe-cross-win64.7z
+        dest: c:\Alfresco\wkhtmltopdf
+    - name: Desempaquetando Alfresco Search Services
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip
         dest: "{{ install_path }}"
-    - name: Downloading config files
+    - name: Descargando archivos de configuración y de aplicación
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
         dest: "{{ item.dest }} "
@@ -114,7 +181,7 @@
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-aos-module/1.2.2/alfresco-aos-module-1.2.2.amp', dest: "{{ alfresco_base_path }}\\addons\\alfresco\\alfresco-aos-module-1.2.2.amp" } 
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/aos-module/alfresco-vti-bin/1.2.2/alfresco-vti-bin-1.2.2.war', dest: "{{ tomcat_path }}\\webapps\_vti_bin.war" }
         - { url: 'https://downloads.loftux.net/public/content/org/alfresco/alfresco-server-root/6.0.1/alfresco-server-root-6.0.1.war', dest: "{{ tomcat_path }}\\webapps\\ROOT.war" }
-    - name: Copy config files
+    - name: Copiando archivos de configuración
       win_copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -122,14 +189,13 @@
         - { src: ./resources/tomcat/conf/server.xml, dest: "{{ tomcat_path }}\\conf\\server.xml" }
         - { src: ./resources/alf_data/keystore, dest: "{{ alf_data_path }}" }
         - { src: ./resources/share-config-custom.xml, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco\\web-extension\\share-config-custom.xml" }
-        - { src: ./resources/alfresco-search-services/solrhome/conf/shared.properties, dest: "{{ ass_path }}\\solrhome\\conf\\shared.properties" }
+        - { src: ./resources/alfresco-search-services/solrhome, dest: "{{ ass_path }}" }
         - { src: ./resources/nginx/nginx.conf, dest: "{{ nginx_path }}\\conf\\nginx.conf" }
         - { src: ./resources/nginx/default.conf, dest: "{{ nginx_path }}\\conf\\default.conf" }
         # Certificados SSL auto-generados. Cambiar en producción.
         - { src: ./resources/nginx/privkey.pem, dest: "{{ nginx_path }}\\conf\\privkey.pem" }
         - { src: ./resources/nginx/fullchain.pem, dest: "{{ nginx_path }}\\conf\\fullchain.pem" }
-
-    - name: Copy config templates
+    - name: Copiando plantillas de configuración
       ansible.windows.win_template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -137,27 +203,28 @@
         - { src: ./resources/alfresco-global.properties.j2, dest: "{{ tomcat_path }}\\shared\\classes\\alfresco-global.properties" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/alfresco.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\alfresco.xml" }
         - { src: ./resources/tomcat/conf/Catalina/localhost/share.xml.j2, dest: "{{ tomcat_path }}\\conf\\Catalina\\localhost\\share.xml" }
+        - { src: ./resources/tomcat/conf/logging.properties.j2, dest: "{{ tomcat_path }}\\conf\\logging.properties" }
         - { src: ./resources/alfresco-search-services/solr.in.cmd.j2, dest: "{{ ass_path }}\\solr.in.cmd" }
-    - name: Copy vanilla alfresco.war to webapps
+    - name: Copiando alfresco.war original a webapps
       win_copy:
         src: "{{ alfresco_base_path }}\\addons\\war\\alfresco.war"
         dest: "{{ tomcat_path }}\\webapps\\alfresco.war"
         remote_src: yes
-    - name: Install platform AMPs
+    - name: Instalando AMPs de plataforma
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\alfresco {{ tomcat_path }}\\webapps\\alfresco.war -force -directory -nobackup"
-    - name: Copy vanilla share.war to webapps
+    - name: Copiando share.war original a webapps
       win_copy:
         src: "{{ alfresco_base_path }}\\addons\\war\\share.war"
         dest: "{{ tomcat_path }}\\webapps\\share.war"
         remote_src: yes
-    - name: Install Share AMPs
+    - name: Instalando AMPs para Share
       win_shell: "{{ java_path }}\\bin\\java.exe -jar {{ alfresco_base_path }}\\addons\\alfresco-mmt.jar install {{ alfresco_base_path }}\\addons\\share {{ tomcat_path }}\\webapps\\share.war -force -directory -nobackup"
     - name: Instala nssm para servicios
       win_chocolatey:
         name:
         - nssm
         state: present
-    - name: Download T-Engines
+    - name: Descargando motores de transformación
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
         dest: "{{ item.dest }} "
@@ -167,11 +234,7 @@
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-misc-boot/2.5.1/alfresco-transform-misc-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-misc-boot-2.5.1.jar" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-pdf-renderer-boot/2.5.1/alfresco-transform-pdf-renderer-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-pdf-renderer-boot-2.5.1.jar" }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-transform-tika-boot/2.5.1/alfresco-transform-tika-boot-2.5.1.jar', dest: "{{ tengines_path }}\\alfresco-transform-tika-boot-2.5.1.jar" }
-    - name: Copy Pdf Renderer binary
-      win_copy:
-        src: ./external-resources/alfresco-pdf-renderer.exe
-        dest: "{{ alfresco_base_path }}\\bin\\alfresco-pdf-renderer.exe"
-    - name: Configure T-Engines start scripts
+    - name: Configurando servicios para motores de transformación
       ansible.windows.win_template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -181,7 +244,7 @@
         - { src: ./resources/tengines/tengine-misc.bat.j2, dest: "{{ tengines_path }}\\tengine-misc.bat" }
         - { src: ./resources/tengines/tengine-pdfrenderer.bat.j2, dest: "{{ tengines_path }}\\tengine-pdfrenderer.bat" }
         - { src: ./resources/tengines/tengine-tika.bat.j2, dest: "{{ tengines_path }}\\tengine-tika.bat" }
-    - name: Creating services for T-engines
+    - name: Creando servicios para motores de transformación
       community.windows.win_nssm:
         name: "{{ item.serviceName }}"
         application: "{{ tengines_path }}\\{{ item.serviceName }}.bat"
@@ -194,22 +257,22 @@
         - { serviceName: tengine-misc , displayName: " Miscelanea Transformation Engine"}
         - { serviceName: tengine-pdfrenderer , displayName: " Pdf Renderer Transformation Engine"}
         - { serviceName: tengine-tika , displayName: " Tika Transformation Engine"}
-    - name: Creating service for Nginx
+    - name: Creando servicio para Nginx
       community.windows.win_nssm:
         name: nginx
         application: C:\Alfresco\nginx\nginx-1.21.0\nginx.exe
         start_mode: delayed
         display_name: Nginx
         description: Nginx
-    - name: Creating service for Alfresco Search Services
+    - name: Creating servicio para Alfresco Search Services
       community.windows.win_nssm:
         name: alfresco-search-services
         application: "{{ ass_path }}\\solr\\bin\\solr.cmd"
-        arguments: start
+        arguments: start -f
         start_mode: delayed
         display_name: Alfresco Search Services
         description: Alfresco Search Services
-    - name: Starting up services
+    - name: Levantando servicios
       ansible.windows.win_service:
         name: "{{ item }}"
         state: started
@@ -222,7 +285,7 @@
         - tengine-pdfrenderer
         - tengine-tika
         - nginx
-    - name: Firewall rule to allow TCP 80
+    - name: Abriendo Firewall TCP 80
       community.windows.win_firewall_rule:
         name: HTTP
         localport: 80
@@ -231,7 +294,7 @@
         protocol: tcp
         state: present
         enabled: yes
-    - name: Firewall rule to allow TCP 443
+    - name: Abriendo Firewall TCP 443
       community.windows.win_firewall_rule:
         name: HTTPS
         localport: 443
@@ -240,5 +303,9 @@
         protocol: tcp
         state: present
         enabled: yes
+    - name: Limpiando instaladores y temporales
+      ansible.windows.win_file:
+        path: C:\Alfresco\installers
+        state: absent
 # TODO, traducir scripts
 # sudo curl -s -o $ALF_HOME/scripts/limitconvert.sh $BASE_DOWNLOAD/scripts/limitconvert.sh
