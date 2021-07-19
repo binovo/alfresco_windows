@@ -117,9 +117,9 @@ jodconverter.connectTimeout=25000
 alfresco-pdf-renderer.root={{ alfresco_base_path }}\bin
 alfresco-pdf-renderer.exe=${alfresco-pdf-renderer.root}/alfresco-pdf-renderer
 #Shell script to limit cpu used by ImageMagick convert. Edit to match your number of cpu:s
-img.exe=/opt/alfresco/scripts/limitconvert.sh
-img.root=/etc/ImageMagick
-img.dyn=/usr/lib
+img.exe={{ imagemagick_path }}\limitconvert.sh
+img.root={{ imagemagick_path }}\
+img.dyn={{ imagemagick_path }}\
 
 #-----------------------
 # Index

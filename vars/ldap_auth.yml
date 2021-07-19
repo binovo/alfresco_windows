@@ -1,0 +1,44 @@
+ldap_auth: |
+  # Añadimos a la cadena de autenticación una instancia LDAP
+  authentication.chain=alfrescoNtlm1:alfrescoNtlm,ldap-autenticacion:ldap-ad,ldap-asesoria-legal:ldap-ad,ldap-bienes-inmuebles:ldap-ad,ldap-bienes-muebles:ldap-ad,ldap-catastro:ldap-ad,ldap-derechos-de-autor:ldap-ad,ldap-directores:ldap-ad,ldap-modulo-administrativo:ldap-ad,ldap-personas-juridicas:ldap-ad,ldap-politica-seguridad-computadoras:ldap-ad,ldap-propiedad-industrial:ldap-ad,ldap-regional:ldap-ad,ldap-servicios-registrales:ldap-ad,ldap-informatica-administrativo:ldap-ad,ldap-informatica-atencion-al-usuario:ldap-ad,ldap-informatica-bases-de-datos:ldap-ad,ldap-informatica-jefatura:ldap-ad,ldap-informatica-man-users:ldap-ad,ldap-informatica-operaciones:ldap-ad,ldap-seguridad:ldap-ad,ldap-informatica-sistemas:ldap-ad,ldap-informatica-telecomunicaciones:ldap-ad,ldap-unidad-de-validacion:ldap-ad,ldap-ign:ldap-ad,ldap-greencore:ldap-ad
+
+  # Desactivamos la sincronización estándar de LDAP
+  ldap.synchronization.active=false
+  # Habilitamos la autenticación vía LDAP
+  ldap.authentication.active=false
+  ldap.authentication.java.naming.provider.url=ldap://RNPDOM01:389
+  ldap.authentication.java.naming.security.authentication=simple
+  ldap.authentication.userNameFormat=%s@rnpcr.priv
+  ldap.authentication.allowGuestLogin=false
+  ldap.authentication.defaultAdministratorUserNames=
+  ldap.synchronization.java.naming.security.authentication=simple
+  ldap.synchronization.java.naming.security.principal=username
+  ldap.synchronization.java.naming.security.credentials=password
+  ldap.synchronization.groupQuery=(objectclass=NOSINCRONIZARGRUPOS)
+  ldap.synchronization.groupDifferentialQuery=(objectclass=NOSINCRONIZARGRUPOS)
+  ldap.synchronization.groupSearchBase=dc=rnpcr,dc=priv
+  ldap.synchronization.userSearchBase=dc=rnpcr,dc=priv
+  synchronization.synchronizeChangesOnly=true
+  synchronization.import.cron=0 0 0 * * ?
+  #
+  # Prohíbimos la creación automática de cuentas de usuario para evitar que se creen
+  # accidentalmente cuentas con el mecanismo estándar.
+  synchronization.autoCreatePeopleOnLogin=false
+  # Habilitamos y configuramos los parámetros de nuestro módulo cuyo valor por defecto
+  # no nos sirve.
+  una.singleLdapUserSync.enableSingleLdapUserSync=false
+  #Producción
+  una.ldap.authentication.java.naming.provider.url=ldap://RNPDOM01:389
+  #Pruebas
+  #una.ldap.authentication.java.naming.provider.url=ldap://10.0.2.76:389
+  una.ldap.synchronization.java.naming.security.principal=usr_GestorDoc_Log_P
+  #Producción
+  una.ldap.synchronization.java.naming.security.credentials=P4ssw0rd1
+  #Pruebas
+  #una.ldap.synchronization.java.naming.security.credentials=123456
+  una.singleLdapUserSync.userSearchPattern=(&(objectClass=person)(samaccountname={0}))
+  una.singleLdapUserSync.emailPattern={0}@rnp.go.cr
+  una.singleLdapUserSync.firstNameAttributeName=givenname
+  una.singleLdapUserSync.lastNameAttributeName=sn
+  una.singleLdapUserSync.searchBase=dc=rnpcr,dc=priv
+  una.singleLdapUserSync.userIdAttributeName=samaccountname
