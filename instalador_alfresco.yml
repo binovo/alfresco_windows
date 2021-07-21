@@ -37,17 +37,20 @@
         - "{{ alfresco_base_path }}\\addons\\alfresco"
         - "{{ install_path }}\\nginx"
         - "{{ install_path }}\\wkhtmltopdf"
+        - "{{ install_path }}\\python"
     - name: Descargando instaladores
       ansible.windows.win_get_url:
         url: "{{ item.url }}"
         dest: "{{ item.dest }} "
       loop:
         - { url: 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip', dest: C:\Alfresco\installers\OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip }
-        - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-2-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip }
+        - { url: 'https://download.imagemagick.org/ImageMagick/download/binaries/ImageMagick-7.1.0-4-portable-Q16-x64.zip', dest: C:\Alfresco\installers\ImageMagick-7.1.0-4-portable-Q16-x64.zip }
         - { url: 'https://nginx.org/download/nginx-1.21.0.zip', dest: C:\Alfresco\installers\nginx-1.21.0.zip }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-pdf-renderer/1.1/alfresco-pdf-renderer-1.1-win64.tgz', dest: C:\Alfresco\installers\alfresco-pdf-renderer-1.1-win64.tgz }
         - { url: 'https://artifacts.alfresco.com/nexus/service/local/repo_groups/public/content/org/alfresco/alfresco-search-services/1.4.3.4/alfresco-search-services-1.4.3.4.zip', dest: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip }
         - { url: 'https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.mxe-cross-win64.7z', dest: C:\Alfresco\installers\wkhtmltox-0.12.6-1.mxe-cross-win64.7z }
+        - { url: 'https://www.python.org/ftp/python/3.9.6/python-3.9.6-embed-amd64.zip', dest: C:\Alfresco\installers\python-3.9.6-embed-amd64.zip }
+        - { url: 'https://bootstrap.pypa.io/get-pip.py', dest: C:\Alfresco\installers\get-pip.py }
     - name: Instalar NuGet
       ansible.windows.win_powershell:
         script: "Install-PackageProvider -Name NuGet -Force"
@@ -109,12 +112,32 @@
         dest: c:\Alfresco\nginx
     - name: Desempaquetando Imagemagick
       community.windows.win_unzip:
-        src: C:\Alfresco\installers\ImageMagick-7.1.0-2-portable-Q16-x64.zip
+        src: C:\Alfresco\installers\ImageMagick-7.1.0-4-portable-Q16-x64.zip
         dest: "{{ imagemagick_path }}"
     - name: Desempaquetando wkhtmltopdf
       community.windows.win_unzip:
         src: C:\Alfresco\installers\wkhtmltox-0.12.6-1.mxe-cross-win64.7z
         dest: c:\Alfresco\wkhtmltopdf
+    - name: Descomprimiendo Python
+      community.windows.win_unzip:
+        src: C:\Alfresco\installers\python-3.9.6-embed-amd64.zip
+        dest: c:\Alfresco\python
+    - name: Instalando Pip
+      win_shell: c:\Alfresco\python\python.exe C:\Alfresco\installers\get-pip.py
+    - name: Agregando paths
+      ansible.windows.win_path:
+        elements:
+        - '{{ install_path }}\\python'
+        - '{{ install_path }}\\python\\Scripts'
+        - '{{ install_path }}\\JDK11\\jdk-11.0.11+9\\bin'
+        - '{{ install_path }}\\PostgreSQL11\\bin '
+    - name: Configura directorios de librerías para python
+      community.windows.win_lineinfile:
+        path: C:\Alfresco\python\python39._pth
+        regex: '^Lib'
+        line: 'Lib\site-packages'
+    - name: Instala módulos de python con pip
+      win_shell: c:\Alfresco\python\Scripts\pip.exe install python-dateutil pytz requests
     - name: Desempaquetando Alfresco Search Services
       community.windows.win_unzip:
         src: C:\Alfresco\installers\alfresco-search-services-1.4.3.4.zip
@@ -263,6 +286,17 @@
         protocol: tcp
         state: present
         enabled: yes
+        profiles: public
+    - name: Abriendo Firewall TCP 8080
+      community.windows.win_firewall_rule:
+        name: HTTP-tomcat
+        localport: 8080
+        action: allow
+        direction: in
+        protocol: tcp
+        state: present
+        enabled: yes
+        profiles: public
     - name: Abriendo Firewall TCP 443
       community.windows.win_firewall_rule:
         name: HTTPS
@@ -272,6 +306,7 @@
         protocol: tcp
         state: present
         enabled: yes
+        profiles: public
     - name: Limpiando instaladores y temporales
       ansible.windows.win_file:
         path: C:\Alfresco\installers
